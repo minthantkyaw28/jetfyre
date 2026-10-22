@@ -1,0 +1,57 @@
+{
+ "turn": 0,
+ "hypothesis": "baseline: LightGBM on raw sensors and settings, uncapped RUL target, T=30",
+ "status": "ok",
+ "T": 30.0,
+ "fold_costs": [
+  36.4,
+  34.9,
+  36.9,
+  29.45,
+  26.55
+ ],
+ "fold_fails": [
+  0,
+  0,
+  0,
+  0,
+  0
+ ],
+ "fold_waste": [
+  36.4,
+  34.9,
+  36.9,
+  29.45,
+  26.55
+ ],
+ "cost_by_cfail": {
+  "250": [
+   36.4,
+   34.9,
+   36.9,
+   29.45,
+   26.55
+  ],
+  "500": [
+   36.4,
+   34.9,
+   36.9,
+   29.45,
+   26.55
+  ],
+  "1000": [
+   36.4,
+   34.9,
+   36.9,
+   29.45,
+   26.55
+  ]
+ },
+ "mean_cost": 32.84,
+ "fails": 0,
+ "waste": 32.84,
+ "rmse125": 33.459,
+ "nasa100": 59901.4,
+ "leak_ok": true,
+ "secs": 3.27
+}

@@ -1,0 +1,2 @@
+turn	time	hypothesis	status	verdict	mean_cost	best_before	f1	f2	f3	f4	f5	wins	fails	waste	rmse125	nasa100	T	secs
+0	18:01:30	baseline: LightGBM on raw sensors and settings, uncapped RUL target, T=30	ok	baseline	32.84		36.4	34.9	36.9	29.45	26.55		0	32.84	33.459	59901.4	30.0	3.27
