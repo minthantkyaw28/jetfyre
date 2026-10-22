@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 OUT, DOCS = ROOT / "out", ROOT / "docs"
 FIGURES = DOCS / "figures"
-FILES = ["headline.json", "kept_changes.md", "preds_baseline.csv", "preds_best.csv"]
+FILES = ["headline.json", "kept_changes.md", "preds_baseline.csv", "preds_best.csv", "model_story.json"]
 CODE_BRANCH = "cmapss-harness"  # the harness lives on this branch of the repo; main holds only the site
 
 

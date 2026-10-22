@@ -204,6 +204,154 @@ def players(df):
     return optuna_best, third or {"name": None, "mean_cost": None}
 
 
+BEST_T, BASE_T = 7, 30
+AMBER_L, RED_L = "#c98500", "#c8102e"  # caution and warning, light-surface steps
+
+
+def pull_rows(preds, T):
+    """Per engine: (unit, life, pull row or None, cycles left at the pull)."""
+    out = []
+    for u, g in preds.groupby("unit"):
+        g = g.sort_values("cycle")
+        hit = np.flatnonzero((g["pred"].to_numpy() <= T) & (g["life_left"].to_numpy() > 0))
+        out.append((int(u), len(g), int(hit[0]) if hit.size else None,
+                    int(g["life_left"].to_numpy()[hit[0]]) if hit.size else 0))
+    return out
+
+
+def story_unit(preds):
+    """A held-out engine of median life that the best model pulls."""
+    rows = [r for r in pull_rows(preds, BEST_T) if r[2] is not None]
+    rows.sort(key=lambda r: r[1])
+    return rows[len(rows) // 2][0]
+
+
+def scarcity():
+    """Mean cost against T for the best model at each failure price; marks the cheapest T."""
+    if not (OUT / "preds_best.csv").exists():
+        return
+    preds = pd.read_csv(OUT / "preds_best.csv")
+    fig, ax = plt.subplots(figsize=(8, 4.5), dpi=150, facecolor=SURFACE)
+    for c, color, offset in [(250, "#1baf7a", (10, -16)), (500, "#2a78d6", (10, 8)), (1000, "#6250d6", (10, 24))]:
+        costs = replay_curve(preds, c)
+        j = int(np.argmin(costs))
+        ax.plot(T_GRID, costs, color=color, linewidth=2, label=f"Failure costs {c}")
+        ax.scatter([T_GRID[j]], [costs[j]], s=44, color=color, edgecolor=SURFACE, linewidth=2, zorder=4)
+        ax.annotate(f"{c}: cheapest T = {T_GRID[j]}, cost {costs[j]:.2f}", (T_GRID[j], costs[j]), xytext=offset,
+                    textcoords="offset points", fontsize=9, color=INK)
+    style(ax, "Scarcity: the best model's cost against T, at three failure prices",
+          "Threshold T (pull when predicted life <= T)", "Mean cost per engine (cycles)")
+    ax.set_ylim(0, 60)
+    ax.set_xlim(0, 30)
+    ax.legend(frameon=False, labelcolor=INK, loc="upper right")
+    fig.tight_layout()
+    fig.savefig(OUT / "scarcity.png", facecolor=SURFACE)
+    plt.close(fig)
+
+
+def fleet_strip():
+    """One bar per held-out engine: cycles left when the best model pulled it; failures in red."""
+    if not (OUT / "preds_best.csv").exists():
+        return
+    rows = pull_rows(pd.read_csv(OUT / "preds_best.csv"), BEST_T)
+    pulled = sorted([r for r in rows if r[2] is not None], key=lambda r: -r[3])
+    failed = [r for r in rows if r[2] is None]
+    fig, ax = plt.subplots(figsize=(10, 3.6), dpi=150, facecolor=SURFACE)
+    x = np.arange(len(pulled) + len(failed))
+    ax.bar(x[:len(pulled)], [r[3] for r in pulled], width=0.8, color=AMBER_L, edgecolor=SURFACE, linewidth=0.6)
+    if failed:
+        ax.bar(x[len(pulled):], [-8] * len(failed), width=0.8, color=RED_L)
+    style(ax, f"The fleet: cycles left at the pull, all {len(rows)} held-out engines, best model (T = {BEST_T})",
+          f"Engines, sorted ({len(pulled)} pulled, {len(failed)} ran to failure)", "Cycles left at the pull")
+    ax.set_xticks([])
+    ax.axhline(0, color=MUTED, linewidth=0.8)
+    fig.tight_layout()
+    fig.savefig(OUT / "fleet_strip.png", facecolor=SURFACE)
+    plt.close(fig)
+
+
+def engine_story():
+    """One held-out engine: true life left and both models' predictions, with each model's pull."""
+    if not all((OUT / f).exists() for f in ("preds_best.csv", "preds_baseline.csv")):
+        return
+    best, base = pd.read_csv(OUT / "preds_best.csv"), pd.read_csv(OUT / "preds_baseline.csv")
+    u = story_unit(best)
+    fig, ax = plt.subplots(figsize=(8, 4.5), dpi=150, facecolor=SURFACE)
+    g = best[best["unit"] == u].sort_values("cycle")
+    ax.plot(g["cycle"], g["life_left"], color=MUTED, linewidth=1.5, linestyle="--", label="True life left")
+    for name, df, T, color in [("Baseline model", base, BASE_T, "#eb6834"), ("Best model", best, BEST_T, "#2a78d6")]:
+        h = df[df["unit"] == u].sort_values("cycle")
+        ax.plot(h["cycle"], h["pred"], color=color, linewidth=2, label=f"{name}, pulls at T = {T}")
+        hit = np.flatnonzero((h["pred"].to_numpy() <= T) & (h["life_left"].to_numpy() > 0))
+        if hit.size:
+            c, left = int(h["cycle"].iloc[hit[0]]), int(h["life_left"].iloc[hit[0]])
+            ax.scatter([c], [h["pred"].iloc[hit[0]]], s=50, color=color, edgecolor=SURFACE, linewidth=2, zorder=4)
+            ax.annotate(f"pulled at cycle {c}, {left} left", (c, h["pred"].iloc[hit[0]]), xytext=(-150, 18) if T > 10 else (-270, 2),
+                        textcoords="offset points", fontsize=9, color=INK,
+                        arrowprops={"arrowstyle": "-", "color": MUTED, "linewidth": 0.8})
+    style(ax, f"One engine, start to finish (held-out engine {u})", "Cycle", "Cycles of life left")
+    ax.set_ylim(0, 160)
+    ax.legend(frameon=False, labelcolor=INK, loc="upper right")
+    fig.tight_layout()
+    fig.savefig(OUT / "engine_story.png", facecolor=SURFACE)
+    plt.close(fig)
+
+
+def sealed_replay():
+    """The sealed FD003 replay from final.py: failures and cost at each price, baseline against best."""
+    path = OUT / "final.json"
+    if not path.exists():
+        return
+    rows = json.loads(path.read_text())
+    if not all("fd003_replay" in rows.get(m, {}) for m in ("baseline", "best")):
+        return
+    prices = list(rows["best"]["fd003_replay"])
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4), dpi=150, facecolor=SURFACE)
+    x = np.arange(len(prices))
+    for i, (name, color) in enumerate([("baseline", "#eb6834"), ("best", "#2a78d6")]):
+        rep = rows[name]["fd003_replay"]
+        label = f"{name.capitalize()} model (T = {rows[name]['T']:g})"
+        axes[0].bar(x + (i - 0.5) * 0.38, [rep[p]["mean_cost"] for p in prices], width=0.36, color=color, label=label)
+        axes[1].bar(i, rep[prices[0]]["failures"], width=0.6, color=color)
+        axes[1].annotate(f"{rep[prices[0]]['failures']} of {rep[prices[0]]['engines']}", (i, rep[prices[0]]["failures"]),
+                         xytext=(0, 4), textcoords="offset points", ha="center", fontsize=10, color=INK)
+    style(axes[0], "Sealed FD003: mean cost per engine", "Failure price", "Mean cost per engine (cycles)")
+    axes[0].set_xticks(x, prices)
+    axes[0].legend(frameon=False, labelcolor=INK, fontsize=8)
+    style(axes[1], "Sealed FD003: engines that ran to failure", "", "Failures")
+    axes[1].set_xticks([0, 1], ["Baseline", "Best"])
+    fig.tight_layout()
+    fig.savefig(OUT / "sealed_test.png", facecolor=SURFACE)
+    plt.close(fig)
+
+
+def model_story():
+    """out/model_story.json: one held-out engine traced through model.py, for the site's visual."""
+    from prepare import TRAIN, load_tracks
+    if not (OUT / "preds_best.csv").exists():
+        return
+    best = pd.read_csv(OUT / "preds_best.csv")
+    u = story_unit(best)
+    g = best[best["unit"] == u].sort_values("cycle")
+    track = load_tracks(TRAIN)[u]
+    hit = np.flatnonzero((g["pred"].to_numpy() <= BEST_T) & (g["life_left"].to_numpy() > 0))[0]
+    story = {
+        "unit": u, "sensor": "s4", "sensor_label": "temperature at the low-pressure turbine outlet",
+        "cycle": g["cycle"].astype(int).tolist(),
+        "raw": track["s4"].round(2).tolist(),
+        "smooth": track["s4"].rolling(10, min_periods=1).mean().round(2).tolist(),
+        "life_left": g["life_left"].astype(int).tolist(), "pred": g["pred"].round(2).tolist(),
+        "T": BEST_T, "window": 10, "life_cap": 125, "end_weight": 5, "end_rows": 30, "quantile": 0.35,
+        "pull_cycle": int(g["cycle"].iloc[hit]), "left_at_pull": int(g["life_left"].iloc[hit]),
+    }
+    final = OUT / "final.json"
+    if final.exists():
+        rep = json.loads(final.read_text()).get("best", {}).get("fd003_replay", {}).get("500")
+        if rep:
+            story["fd003_failures"], story["fd003_engines"] = rep["failures"], rep["engines"]
+    (OUT / "model_story.json").write_text(json.dumps(story))
+
+
 def hero_animation(n_engines=12, T=7, step=3):
     """out/hero.gif (and a still, hero.png): held-out engines run cycle by cycle under the best model."""
     from matplotlib.animation import FuncAnimation, PillowWriter
@@ -270,6 +418,11 @@ def hero_animation(n_engines=12, T=7, step=3):
 def main():
     OUT.mkdir(exist_ok=True)
     hero_animation()
+    scarcity()
+    fleet_strip()
+    engine_story()
+    sealed_replay()
+    model_story()
     df = greedy_log()
     ratchet(df)
     print("frontier (cheapest T at failure cost 500):", json.dumps(frontier()))
