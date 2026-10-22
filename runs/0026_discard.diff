@@ -1,0 +1,17 @@
+diff --git a/model.py b/model.py
+index fa13fdc..e209907 100644
+--- a/model.py
++++ b/model.py
+@@ -31,9 +31,10 @@ class Model:
+     def fit(self, tracks):
+         X = pd.concat([features(t) for t in tracks], ignore_index=True)
+         y = np.concatenate([target(t) for t in tracks])
+-        self.m = lgb.LGBMRegressor(n_estimators=200, learning_rate=0.05, num_leaves=31,
++        self.m = lgb.LGBMRegressor(objective="quantile", alpha=0.4,  # conservative conditional quantile
++                                   n_estimators=200, learning_rate=0.05, num_leaves=31,
+                                    random_state=0, n_jobs=4, verbose=-1)
+-        self.m.fit(X, y, sample_weight=1.0 / (y + 10.0))  # conservative where late life is ambiguous
++        self.m.fit(X, y)
+         return self
+ 
+     def predict(self, track):
