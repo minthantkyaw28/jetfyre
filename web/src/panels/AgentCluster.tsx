@@ -233,7 +233,7 @@ export default function AgentCluster() {
       {/* header */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-0">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.1em] text-dim">Autoresearch cluster</div>
+          <div className="text-[14px] font-bold uppercase tracking-[0.12em] text-white">Autoresearch cluster</div>
           <div className="flex items-center gap-2">
             <h2 className="truncate font-display text-[18px] font-semibold text-ink">{family.name}</h2>
             {live ? (
@@ -268,8 +268,8 @@ export default function AgentCluster() {
             const title = i === 4 && isDone ? (keepish ? "Kept" : "Reverted") : s.label;
             return (
               <div key={s.key} title={`${s.label}: ${s.desc}`}
-                className={`relative min-w-0 overflow-hidden rounded-xl border px-3 py-2.5 transition-all duration-300 ${
-                  isActive ? "bg-gradient-fyre jf-glow border-transparent text-white" : isDone ? "border-ok/25 bg-ok/[0.06]" : "border-line bg-panel2"
+                className={`relative min-w-0 overflow-hidden rounded-xl border px-3 py-2.5 transition-all duration-500 ease-out ${
+                  isActive ? "bg-gradient-fyre jf-glow border-transparent text-white" : isDone ? "border-ok/40 bg-gradient-to-b from-white/[0.16] to-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_6px_18px_rgba(2,6,23,0.25)] backdrop-blur-sm" : "border-white/15 bg-gradient-to-b from-white/[0.16] to-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_6px_18px_rgba(2,6,23,0.25)] backdrop-blur-sm"
                 }`}>
                 <div className="flex items-center justify-between">
                   <span className={`font-mono text-[12px] font-semibold ${isActive ? "text-white/85" : "text-dim"}`}>0{i + 1}</span>
@@ -291,8 +291,8 @@ export default function AgentCluster() {
             const dot = v.status === "blocked" ? C.pull : v.status === "done" ? C.ok : v.status === "idle" ? C.line2 : a.color;
             return (
               <div key={a.key} title={`${a.name} · ${a.role}`}
-                className="flex min-w-0 flex-col items-center gap-1 rounded-xl border px-1 py-2 transition-all duration-300"
-                style={{ borderColor: on ? mix(a.color, 55) : C.line, background: on ? tint(a.color, 10) : C.panel }}>
+                className="flex min-w-0 flex-col items-center gap-1 rounded-xl border px-1 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_6px_18px_rgba(2,6,23,0.25)] backdrop-blur-sm transition-all duration-500 ease-out"
+                style={{ borderColor: on ? mix(a.color, 60) : "rgba(255,255,255,0.15)", background: on ? "linear-gradient(180deg, rgba(255,255,255,0.24), rgba(255,255,255,0.10))" : "linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.06))" }}>
                 <span className="relative grid h-8 w-8 shrink-0 place-items-center rounded-full text-[15px]"
                   style={{ background: mix(a.color, on ? 22 : 12), color: a.color }}>
                   {a.glyph}
