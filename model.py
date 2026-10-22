@@ -14,8 +14,14 @@ SENSORS = [f"s{i}" for i in range(1, 22)]
 FEATURES = SETTINGS + SENSORS + ["cycle"]
 
 
+WINDOW = 10
+
+
 def features(track):
-    return track[FEATURES].to_numpy(dtype=float)
+    raw = track[FEATURES].to_numpy(dtype=float)
+    # Backward-looking rolling mean: row i uses rows max(0, i-WINDOW+1)..i.
+    roll = track[SENSORS].rolling(WINDOW, min_periods=1).mean().to_numpy(dtype=float)
+    return np.hstack([raw, roll])
 
 
 # ---- Target: true life left, capped ----
