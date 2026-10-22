@@ -354,6 +354,14 @@ def model_story():
         if base:
             story["fd003_failures_baseline"] = base["failures"]
     story["T_baseline"] = BASE_T
+    v2 = ROOT.parent / "robust" / "out" / "final.json"  # the robust (v2) loop's sealed result
+    if v2.exists():
+        rep = json.loads(v2.read_text()).get("best", {}).get("fd003_replay", {})
+        if rep:
+            story["v2_fd003_failures"] = sum(r["failures"] for r in rep.values())
+            story["v2_fd003_engines"] = rep["500"]["engines"]
+            story["v2_fd003_cost"] = round(rep["500"]["mean_cost"], 2)
+            story["v1_fd003_cost"] = round(json.loads(final.read_text())["best"]["fd003_replay"]["500"]["mean_cost"], 2) if final.exists() else None
     fleet = OUT / "fleet.json"
     if fleet.exists():
         for r in json.loads(fleet.read_text()):
