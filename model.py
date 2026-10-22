@@ -11,7 +11,7 @@ import lightgbm as lgb
 import numpy as np
 import pandas as pd
 
-T = 11.0  # pull threshold, in cycles of predicted remaining life
+T = 10.0  # pull threshold, in cycles of predicted remaining life
 
 SETTINGS = ["os1", "os2", "os3"]
 SENSORS = [f"s{i}" for i in range(1, 22)]

@@ -1,14 +1,14 @@
 {
- "turn": 18,
- "hypothesis": "lower pull threshold T 12->11 on the T0009 model (settings + causal r10 means, unchanged): T0017 showed that model variance does not limit the RUL~T crossing and five feature changes only moved crossings between folds, so T is the lever left that should help every fold; with 0 fails and waste ~T-1 (f5 8.5 = least margin), one cycle lower should cut waste by about 1 on every fold, provided no engine runs to failure",
+ "turn": 19,
+ "hypothesis": "lower pull threshold T 11->10 on the T0009 model (settings + causal r10 means, unchanged): T0018 cut waste on all 5 folds with 0 fails and unchanged rmse125, so at least 1 cycle of margin was left everywhere; f4/f5 waste (8.4/7.8) still sits ~3 below T, so one more cycle should cut waste by about 1 per fold, provided no engine on f5 (thinnest margin) runs to failure",
  "status": "ok",
- "T": 11.0,
+ "T": 10.0,
  "fold_costs": [
-  11.2,
-  10.05,
-  11.5,
-  8.4,
-  7.8
+  10.6,
+  9.3,
+  10.6,
+  7.95,
+  7.35
  ],
  "fold_fails": [
   0,
@@ -18,40 +18,40 @@
   0
  ],
  "fold_waste": [
-  11.2,
-  10.05,
-  11.5,
-  8.4,
-  7.8
+  10.6,
+  9.3,
+  10.6,
+  7.95,
+  7.35
  ],
  "cost_by_cfail": {
   "250": [
-   11.2,
-   10.05,
-   11.5,
-   8.4,
-   7.8
+   10.6,
+   9.3,
+   10.6,
+   7.95,
+   7.35
   ],
   "500": [
-   11.2,
-   10.05,
-   11.5,
-   8.4,
-   7.8
+   10.6,
+   9.3,
+   10.6,
+   7.95,
+   7.35
   ],
   "1000": [
-   11.2,
-   10.05,
-   11.5,
-   8.4,
-   7.8
+   10.6,
+   9.3,
+   10.6,
+   7.95,
+   7.35
   ]
  },
- "mean_cost": 9.79,
+ "mean_cost": 9.16,
  "fails": 0,
- "waste": 9.79,
+ "waste": 9.16,
  "rmse125": 33.456,
  "nasa100": 47733.3,
  "leak_ok": true,
- "secs": 3.64
+ "secs": 10.84
 }
