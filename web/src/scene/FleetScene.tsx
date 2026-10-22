@@ -59,7 +59,7 @@ export default function FleetScene() {
           if (useUI.getState().engineId) selectEngine(null);
         }}
       >
-        <fog attach="fog" args={["#0a1838", 18, 48]} />
+        <fog attach="fog" args={["#0e2a78", 18, 48]} />
         <Suspense fallback={null}>
           <Backdrop />
           <Lights />

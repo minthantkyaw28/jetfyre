@@ -15,7 +15,7 @@ function studioTexture() {
   const g = c.getContext("2d")!;
   const grad = g.createLinearGradient(0, 0, 0, 512);
   grad.addColorStop(0, STUDIO_TOP);
-  grad.addColorStop(0.45, "#0c1d45");
+  grad.addColorStop(0.45, "#123c9e");
   grad.addColorStop(0.55, FLOOR);
   grad.addColorStop(1, STUDIO_BOTTOM);
   g.fillStyle = grad;
@@ -48,10 +48,10 @@ export function Backdrop() {
         args={[40, 40]}
         cellSize={0.5}
         cellThickness={0.5}
-        cellColor="#16306a"
+        cellColor="#1f4bb0"
         sectionSize={2.5}
         sectionThickness={0.9}
-        sectionColor="#2c55a8"
+        sectionColor="#4f8dff"
         fadeDistance={22}
         fadeStrength={1.8}
         infiniteGrid
@@ -60,11 +60,11 @@ export function Backdrop() {
       {/* turntable rings */}
       <mesh position={[0, FLOOR_Y + 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[4.55, 4.58, 128]} />
-        <meshBasicMaterial color={BLUE} transparent opacity={0.22} toneMapped={false} />
+        <meshBasicMaterial color="#3b82f6" transparent opacity={0.5} toneMapped={false} />
       </mesh>
       <mesh ref={ring} position={[0, FLOOR_Y + 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[4.85, 4.93, 96, 1, 0, Math.PI * 1.35]} />
-        <meshBasicMaterial color={CYAN} transparent opacity={0.25} toneMapped={false} />
+        <meshBasicMaterial color="#45dcf7" transparent opacity={0.6} toneMapped={false} />
       </mesh>
     </>
   );
@@ -86,7 +86,7 @@ export function Lights() {
   });
   return (
     <>
-      <hemisphereLight ref={hemi} args={["#ffffff", "#1d3a70", 1.1]} />
+      <hemisphereLight ref={hemi} args={["#ffffff", "#2a55c8", 1.1]} />
       <directionalLight ref={key} position={[6, 10, 7]} intensity={2.0} color="#ffffff" />
       <directionalLight position={[-8, 4, 5]} intensity={0.9} color="#f1f5ff" />
       <directionalLight position={[-4, 3, -9]} intensity={1.2} color="#60a5fa" />

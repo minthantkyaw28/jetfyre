@@ -68,7 +68,7 @@ export default function App() {
   return (
     <div className="theme-navy grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)]">
       <header className="relative flex flex-wrap items-center justify-between gap-3 theme-navy border-b border-line px-5 py-3">
-        <div className="bg-gradient-fyre absolute inset-x-0 bottom-0 h-px opacity-70" />
+        <div className="radiant-line absolute inset-x-0 bottom-0" />
         <Logo />
         <div className="flex flex-wrap items-center gap-2">
           <Kpi label="Pull now" value={`${pull}`} tone="text-pull" glow={pull ? "glow-fyre" : ""} />
@@ -91,8 +91,9 @@ export default function App() {
       <main className="grid min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1.3fr)_minmax(440px,1fr)]">
         <section className="relative h-[62vh] min-h-0 border-b border-line lg:h-auto lg:border-r lg:border-b-0">
           <FleetScene />
+          <div className="pointer-events-none absolute inset-0 z-20 bg-[radial-gradient(55%_45%_at_50%_48%,#3b82f633,transparent_70%)] mix-blend-screen" />
         </section>
-        <section className="theme-navy grid min-h-0 grid-rows-[minmax(0,1.55fr)_minmax(0,1fr)]">
+        <section className="theme-navy grid min-h-0 grid-rows-[minmax(0,1.8fr)_minmax(0,1fr)]">
           <div className="min-h-[420px] border-b border-line lg:min-h-0">
             <AgentCluster />
           </div>
