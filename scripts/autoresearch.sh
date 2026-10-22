@@ -37,14 +37,14 @@ for (( i = 1; i <= MAX_TURNS; i++ )); do
 
   claude -p "$PROMPT" \
     --settings .claude/research-settings.json \
-    "${MODEL_ARGS[@]}" \
+    ${MODEL_ARGS[@]+"${MODEL_ARGS[@]}"} \
     --permission-mode acceptEdits \
     --allowedTools "Read" "Edit(./model.py)" "Edit(./memory/insights.md)" \
       "Bash(.venv/bin/python loop.py:*)" "Bash(tail:*)" "Bash(git log:*)" "Bash(git diff:*)" \
     --disallowedTools "Read(./locked/**)" "Write" "Bash(git commit:*)" "Bash(git reset:*)" "Bash(git checkout:*)" \
     > "$log" 2>&1 &
   pid=$!
-  ( sleep "$TURN_CAP"; kill "$pid" 2>/dev/null && echo "turn $i killed after ${TURN_CAP}s" >> "$log" ) &
+  ( sleep "$TURN_CAP"; kill "$pid" 2>/dev/null && echo "turn $i killed after ${TURN_CAP}s" >> "$log" ) >/dev/null 2>&1 &
   watchdog=$!
   wait "$pid"
   kill "$watchdog" 2>/dev/null; wait "$watchdog" 2>/dev/null
