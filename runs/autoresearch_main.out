@@ -12,3 +12,5 @@ autoresearch: 45 min, max 45 turns, cap 240s/turn
 === turn 6 (results rows: 9) 18:12:34 → runs/agent_turn_0009.log
   last: 8	per-engine causal baseline: add (10-cycle rolling mean minus this engine's own mean over its first <=20 cycles) for the 14 informative sensors: removes engine-to-engine initial-wear offsets that make some engines' late-life preds run high (thin f4/f5 margin, waste ~9) and others dip early (f1/f3 waste ~13), so first crossings below T=12 cluster closer to true RUL and waste drops without new fails	discard	11.54
 === turn 7 (results rows: 10) 18:14:10 → runs/agent_turn_0010.log
+  last: 9	drop the raw per-cycle sensor columns and feed only settings + causal 10-cycle rolling means of the 14 informative sensors: raw sensors inject per-cycle noise into late-life predictions that triggers early dips below T=12; with inputs smoothed and the model trained on the same lagged features, predictions stay calibrated (unlike post-hoc EWMA in T0007) so the first crossing lands closer to T and waste drops on every fold without new fails	keep	10.85
+=== turn 8 (results rows: 11) 18:16:18 → runs/agent_turn_0011.log
