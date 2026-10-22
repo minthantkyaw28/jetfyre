@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/bin/python loop.py:*)",
+      "Bash(.venv/bin/python evaluate.py:*)",
+      "Bash(tail:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Edit(./model.py)",
+      "Edit(./memory/insights.md)"
+    ],
+    "deny": [
+      "Read(./locked/**)",
+      "Edit(./locked/**)",
+      "Write(./locked/**)"
+    ]
+  }
+}

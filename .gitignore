@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+runs/agent_turn_*.log
+.claude/settings.local.json

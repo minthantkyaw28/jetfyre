@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/bin/python loop.py:*)",
+      "Bash(.venv/bin/python evaluate.py:*)",
+      "Bash(tail:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Edit(./model.py)",
+      "Edit(./memory/insights.md)"
+    ],
+    "deny": [
+      "Read(./locked/**)",
+      "Edit(./locked/**)",
+      "Write(./locked/**)",
+      "Edit(./evaluate.py)",
+      "Write(./evaluate.py)",
+      "Edit(./prepare.py)",
+      "Write(./prepare.py)",
+      "Edit(./loop.py)",
+      "Write(./loop.py)",
+      "Edit(./final_eval.py)",
+      "Write(./final_eval.py)",
+      "Bash(cat locked:*)",
+      "Bash(cat ./locked:*)",
+      "Bash(head locked:*)",
+      "Bash(head ./locked:*)",
+      "Bash(tail locked:*)",
+      "Bash(tail ./locked:*)",
+      "Bash(less locked:*)",
+      "Bash(less ./locked:*)",
+      "Bash(more locked:*)",
+      "Bash(cp locked:*)",
+      "Bash(cp -r locked:*)",
+      "Bash(cp ./locked:*)",
+      "Bash(ls locked:*)",
+      "Bash(grep * locked:*)",
+      "Bash(wc locked:*)",
+      "Bash(open locked:*)"
+    ]
+  }
+}
