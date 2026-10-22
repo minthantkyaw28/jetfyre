@@ -1,14 +1,14 @@
 {
- "turn": 19,
- "hypothesis": "lower pull threshold T 11->10 on the T0009 model (settings + causal r10 means, unchanged): T0018 cut waste on all 5 folds with 0 fails and unchanged rmse125, so at least 1 cycle of margin was left everywhere; f4/f5 waste (8.4/7.8) still sits ~3 below T, so one more cycle should cut waste by about 1 per fold, provided no engine on f5 (thinnest margin) runs to failure",
+ "turn": 21,
+ "hypothesis": "sample weights 1/(RUL+10) paired with T 10->8.5 on the T0009 model (settings + causal r10 means): T0014 showed the weights act as a conservative bias that grows with the spread of true RUL in a leaf (+0.35-0.5 waste on f1/f2/f4 but +1.45 on f5 at T=12), so the over-predicting f5 engine that failed at T=9 (T0020) gets ~1.5 cycles of extra margin while typical engines shift only ~0.5; at T=8.5 typical folds act like T~9 (waste down ~0.5-0.8 on f1-f4) while the f5 tail behaves like T~10, so mean cost falls with 0 fails and wins on >=4/5 folds (f5 expected to lose)",
  "status": "ok",
- "T": 10.0,
+ "T": 8.5,
  "fold_costs": [
-  10.6,
-  9.3,
-  10.6,
-  7.95,
-  7.35
+  8.95,
+  8.25,
+  10.15,
+  7.25,
+  6.95
  ],
  "fold_fails": [
   0,
@@ -18,40 +18,40 @@
   0
  ],
  "fold_waste": [
-  10.6,
-  9.3,
-  10.6,
-  7.95,
-  7.35
+  8.95,
+  8.25,
+  10.15,
+  7.25,
+  6.95
  ],
  "cost_by_cfail": {
   "250": [
-   10.6,
-   9.3,
-   10.6,
-   7.95,
-   7.35
+   8.95,
+   8.25,
+   10.15,
+   7.25,
+   6.95
   ],
   "500": [
-   10.6,
-   9.3,
-   10.6,
-   7.95,
-   7.35
+   8.95,
+   8.25,
+   10.15,
+   7.25,
+   6.95
   ],
   "1000": [
-   10.6,
-   9.3,
-   10.6,
-   7.95,
-   7.35
+   8.95,
+   8.25,
+   10.15,
+   7.25,
+   6.95
   ]
  },
- "mean_cost": 9.16,
+ "mean_cost": 8.31,
  "fails": 0,
- "waste": 9.16,
- "rmse125": 33.456,
- "nasa100": 47733.3,
+ "waste": 8.31,
+ "rmse125": 28.942,
+ "nasa100": 15465.1,
  "leak_ok": true,
- "secs": 10.84
+ "secs": 4.23
 }

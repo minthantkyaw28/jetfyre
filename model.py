@@ -11,7 +11,7 @@ import lightgbm as lgb
 import numpy as np
 import pandas as pd
 
-T = 10.0  # pull threshold, in cycles of predicted remaining life
+T = 8.5  # pull threshold, in cycles of predicted remaining life
 
 SETTINGS = ["os1", "os2", "os3"]
 SENSORS = [f"s{i}" for i in range(1, 22)]
@@ -33,7 +33,7 @@ class Model:
         y = np.concatenate([target(t) for t in tracks])
         self.m = lgb.LGBMRegressor(n_estimators=200, learning_rate=0.05, num_leaves=31,
                                    random_state=0, n_jobs=4, verbose=-1)
-        self.m.fit(X, y)
+        self.m.fit(X, y, sample_weight=1.0 / (y + 10.0))  # conservative where late life is ambiguous
         return self
 
     def predict(self, track):

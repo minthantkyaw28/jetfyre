@@ -34,3 +34,5 @@ autoresearch: 45 min, max 45 turns, cap 240s/turn
 === turn 17 (results rows: 20) 18:29:16 → runs/agent_turn_0020.log
   last: 19	lower pull threshold T 11->10 on the T0009 model (settings + causal r10 means, unchanged): T0018 cut waste on all 5 folds with 0 fails and unchanged rmse125, so at least 1 cycle of margin was left everywhere; f4/f5 waste (8.4/7.8) still sits ~3 below T, so one more cycle should cut waste by about 1 per fold, provided no engine on f5 (thinnest margin) runs to failure	keep	9.16
 === turn 18 (results rows: 21) 18:30:17 → runs/agent_turn_0021.log
+  last: 20	lower pull threshold T 10->9 on the T0009 model (settings + causal r10 means, unchanged): T0019 cut waste on all 5 folds with 0 fails and unchanged rmse125, so at least 1 cycle of margin remained everywhere; f1-f3 (10.6/9.3/10.6) still sit near T and should drop ~0.6-0.9, f4/f5 ~0.45, provided no f5 engine (7.35, thinnest margin) has a late-life prediction floor above 9 and runs to failure	discard	13.24
+=== turn 19 (results rows: 22) 18:32:24 → runs/agent_turn_0022.log
