@@ -139,12 +139,21 @@ export default function Overlays() {
         href="https://jetfyre.vercel.app/"
         target="_blank"
         rel="noreferrer"
-        className="absolute bottom-5 left-5 z-30 hidden items-center gap-3 rounded-2xl border border-line bg-panel/85 p-2.5 pr-4 shadow-[0_10px_28px_#02061766] backdrop-blur transition hover:border-fyre md:flex"
+        className="border-gradient group absolute bottom-5 left-5 z-30 hidden items-center gap-4 rounded-2xl p-3 pr-5 shadow-[0_0_0_1px_#3b82f61a,0_14px_40px_#1d4ed855] backdrop-blur transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_#5b9cff40,0_18px_48px_#3b82f670] md:flex"
       >
-        <img src="/qr-jetfyre.svg" alt="QR code for jetfyre.vercel.app" className="h-[84px] w-[84px] rounded-lg bg-white p-1" />
-        <div className="max-w-[150px] leading-snug">
-          <div className="text-[13.5px] font-semibold text-ink">Scan to see the project on your phone</div>
-          <div className="mt-1 font-mono text-[11.5px] text-muted">jetfyre.vercel.app</div>
+        <div className="rounded-xl bg-gradient-to-br from-cyan-400 via-blue-500 to-violet-500 p-[2px]">
+          <img src="/qr-jetfyre.svg" alt="QR code for jetfyre.vercel.app" className="block h-[124px] w-[124px] rounded-[10px] bg-white p-1.5" />
+        </div>
+        <div className="max-w-[160px] leading-snug">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-fyre2">
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="7" y="2" width="10" height="20" rx="2.5" />
+              <path d="M11 18h2" />
+            </svg>
+            Open on mobile
+          </div>
+          <div className="mt-1.5 font-display text-[16px] font-semibold text-ink">Scan to see the project on your phone</div>
+          <div className="mt-1.5 font-mono text-[12px] text-muted transition group-hover:text-fyre2">jetfyre.vercel.app ↗</div>
         </div>
       </a>
     </>
