@@ -73,6 +73,15 @@ section { border-top: 1px solid var(--rule); padding: 56px 0 48px; }
 .say-early { color: var(--band-caution); }
 .say-late { color: var(--band-warning); }
 
+/* Takeaways */
+.takeaways { border-left: 4px solid var(--warning); padding: 4px 0 4px 22px; margin: 0; max-width: 980px; }
+.takeaways h2 { color: var(--warning-ink); }
+.takeaways ol { margin: 0; padding-left: 1.3em; max-width: 72ch; }
+.takeaways li { color: var(--warning-ink); font-size: 21px; line-height: 1.5; margin-bottom: 14px; }
+.takeaways li::marker { font-family: var(--head); font-weight: 700; }
+.takeaways li b { font-family: var(--head); font-weight: 700; font-size: 23px; }
+.takeaways .num, .takeaways .num:not(.filled) { color: var(--warning-ink); }
+
 /* Two columns */
 .two { display: grid; gap: 28px; max-width: 980px; }
 .two > div + div { border-top: 1px solid var(--rule); padding-top: 24px; }
@@ -228,6 +237,17 @@ footer p { margin: 0 0 4px; }
 <main>
 <div class="wrap">
 
+<section id="takeaways" class="takeaways">
+  <h2>Five things we learned</h2>
+  <ol>
+    <li><b>The loop works.</b> An agent allowed to edit one file cut the cost per engine from <span class="num" data-k="mean_cost.baseline">[__]</span> to <span class="num" data-k="mean_cost.best">[__]</span> cycles, closing <span class="num" data-k="gap_closed" data-fmt="pct">[__]</span> of the gap to a perfect oracle.</li>
+    <li><b>It beats the schedule.</b> Pulling every engine at one fixed cycle costs <span class="num" data-k="mean_cost.fixed">[__]</span> cycles per engine.</li>
+    <li><b>It beats the tuner.</b> Optuna, free to turn five dials, reached <span class="num" data-k="mean_cost.optuna">[__]</span>. The agent could change the model's design.</li>
+    <li><b>The sealed test caught it overfitting.</b> On FD003, a fault type it never trained on, the best model let <span class="num" data-s="fd003_failures" data-fmt="int">[__]</span> of <span class="num" data-s="fd003_engines" data-fmt="int">[__]</span> engines fail, against <span class="num" data-s="fd003_failures_baseline" data-fmt="int">[__]</span> for the baseline.</li>
+    <li><b>Shop capacity flips the ranking.</b> With two shop slots a week, the cautious baseline beats the tight best model, so the pull rule has to be judged against the shop, not only the engine.</li>
+  </ol>
+</section>
+
 <section id="bet">
   <h2>Every pull is a bet on time</h2>
   <div class="two">
@@ -242,14 +262,9 @@ footer p { margin: 0 0 4px; }
   </div>
 </section>
 
-<section id="price">
-  <h2>Why the price moves</h2>
-  <p>After the 2022 sanctions, more than 400 leased jets worth almost $10 billion stayed in Russia, cut off from Western parts.<sup><a href="#src-3" aria-label="Source 3">3</a></sup> One independent count found over 800 technical faults that forced cancellations or emergency landings there from January to late November 2025, against just over 200 in the same months of 2024.<sup><a href="#src-4" aria-label="Source 4">4</a></sup> Elsewhere, and for separate reasons, overhaul turnaround for new-generation engines has risen more than 150% in five years, mostly from faults in the new engines and shortages of parts.<sup><a href="#src-5" aria-label="Source 5">5</a></sup> Before the war, Russia supplied about 65% of the titanium in Airbus aircraft.<sup><a href="#src-6" aria-label="Source 6">6</a></sup> None of these figures is the price of an engine cycle, but each one moves it. So the evaluator does not fix that price. It treats the price of engine life as a dial the airline sets.</p>
-</section>
-
 <section id="loop">
   <h2>How the loop works</h2>
-  <p>The loop follows the autoresearch pattern:<sup><a href="#src-7" aria-label="Source 7">7</a></sup> an agent proposes one change, a fixed referee scores it, and only clear wins survive.</p>
+  <p>The loop follows the autoresearch pattern:<sup><a href="#src-3" aria-label="Source 3">3</a></sup> an agent proposes one change, a fixed referee scores it, and only clear wins survive.</p>
   <ol class="pipeline">
     <li>The agent reads <code>results.tsv</code> and writes a one-line hypothesis.</li>
     <li>It edits <code>model.py</code>, the only file it may touch.</li>
@@ -258,7 +273,7 @@ footer p { margin: 0 0 4px; }
     <li>The change is committed only if the mean cost falls and it wins four folds of five. Otherwise it is reverted.</li>
     <li>The result is logged, and the loop starts again.</li>
   </ol>
-  <div class="sealed"><p>The FD001 test set and all of FD003 are sealed.<sup><a href="#src-8" aria-label="Source 8">8</a></sup> Nothing in the loop reads them. <code>final.py</code> opens them once, after the last turn.</p></div>
+  <div class="sealed"><p>The FD001 test set and all of FD003 are sealed.<sup><a href="#src-4" aria-label="Source 4">4</a></sup> Nothing in the loop reads them. <code>final.py</code> opens them once, after the last turn.</p></div>
 </section>
 
 <section id="model">
@@ -436,7 +451,7 @@ footer p { margin: 0 0 4px; }
 
 <section id="published">
   <h2>Against published work</h2>
-  <p>On the sealed test sets the usual measures are RMSE and the NASA score, both taken at each engine’s last recorded cycle. Lower is better for both, and the NASA score punishes late predictions harder than early ones.<sup><a href="#src-9" aria-label="Source 9">9</a></sup> Published results cap the target life at 125 or 130 cycles, so the comparison is approximate. Our FD003 numbers come from a model trained only on FD001, while published FD003 results train on FD003.</p>
+  <p>On the sealed test sets the usual measures are RMSE and the NASA score, both taken at each engine’s last recorded cycle. Lower is better for both, and the NASA score punishes late predictions harder than early ones.<sup><a href="#src-5" aria-label="Source 5">5</a></sup> Published results cap the target life at 125 or 130 cycles, so the comparison is approximate. Our FD003 numbers come from a model trained only on FD001, while published FD003 results train on FD003.</p>
   <div class="table-wrap">
     <table>
       <thead><tr><th scope="col">Subset and measure</th><th scope="col" class="n">Our baseline</th><th scope="col" class="n">Our best</th><th scope="col" class="n">Strong deep models</th><th scope="col" class="n">Plain LSTM</th></tr></thead>
@@ -459,7 +474,7 @@ footer p { margin: 0 0 4px; }
       <tbody>
         <tr><td>Greedy agent</td><td>Anything in <code>model.py</code>: features, target, learner, loss and T</td><td>One idea per turn, and it keeps only clear wins, so it can stall at a cliff edge</td><td class="n"><span class="num" data-k="mean_cost.best">[__]</span></td></tr>
         <tr><td>Optuna</td><td>Five numbers on raw features: learning rate, depth, iterations, life cap and T</td><td>It cannot invent a feature or change the loss</td><td class="n"><span class="num" data-k="mean_cost.optuna">[__]</span></td></tr>
-        <tr><td><span class="num" data-k="third_player.name" data-fmt="text">[__]</span></td><td id="third-can">Whole-program rewrites by a language model, kept in an evolving population<sup><a href="#src-10" aria-label="Source 10">10</a></sup></td><td id="third-weak">Many rewrites fail to run, and the search is only as good as the model behind it</td><td class="n"><span class="num" data-k="third_player.mean_cost">[__]</span></td></tr>
+        <tr><td><span class="num" data-k="third_player.name" data-fmt="text">[__]</span></td><td id="third-can">Whole-program rewrites by a language model, kept in an evolving population<sup><a href="#src-6" aria-label="Source 6">6</a></sup></td><td id="third-weak">Many rewrites fail to run, and the search is only as good as the model behind it</td><td class="n"><span class="num" data-k="third_player.mean_cost">[__]</span></td></tr>
       </tbody>
     </table>
   </div>
@@ -467,7 +482,7 @@ footer p { margin: 0 0 4px; }
 
 <section id="run">
   <h2>Run it yourself</h2>
-  <p>Download the NASA C-MAPSS files first.<sup><a href="#src-8" aria-label="Source 8">8</a></sup> <code>train_FD001.txt</code> goes in <code>data/</code>; the FD001 test and RUL files and all of FD003 go in <code>sealed/</code>. Then run these in order from the repository root.</p>
+  <p>Download the NASA C-MAPSS files first.<sup><a href="#src-4" aria-label="Source 4">4</a></sup> <code>train_FD001.txt</code> goes in <code>data/</code>; the FD001 test and RUL files and all of FD003 go in <code>sealed/</code>. Then run these in order from the repository root.</p>
   <pre><code>pip install numpy pandas scikit-learn optuna matplotlib
 python prepare.py
 python loop.py "baseline"
@@ -484,14 +499,10 @@ python publish_site.py</code></pre>
   <ol class="sources">
     <li id="src-1">Air Cargo Week, <a href="https://aircargoweek.com/the-real-cost-of-aog/">The real cost of AOG</a>.</li>
     <li id="src-2">Wikipedia, <a href="https://en.wikipedia.org/wiki/Aircraft_on_ground">Aircraft on ground</a>.</li>
-    <li id="src-3">The Business Standard, <a href="https://www.tbsnews.net/world/global-economy/worlds-largest-aircraft-owner-lost-113-planes-russia-421838">World’s largest aircraft owner lost 113 planes to Russia</a>, May 2022.</li>
-    <li id="src-4">The Moscow Times, <a href="https://www.themoscowtimes.com/2026/08/04/incidents-involving-russian-airliners-quadruple-in-2025">Incidents involving Russian airliners quadruple in 2025</a>.</li>
-    <li id="src-5">Air Cargo Week, <a href="https://aircargoweek.com/what-defined-engine-market-in-2025/">What defined engine market in 2025?</a></li>
-    <li id="src-6">Frost &amp; Sullivan, <a href="https://www.frost.com/frost-perspectives/impact-of-the-russia-ukraine-crisis-on-aviation-supply-chains/">Impact of the Russia-Ukraine crisis on aviation supply chains</a>.</li>
-    <li id="src-7">Andrej Karpathy, <a href="https://github.com/karpathy/autoresearch">autoresearch</a>, GitHub.</li>
-    <li id="src-8">NASA, Turbofan Engine Degradation Simulation (C-MAPSS), <a href="https://phm-datasets.s3.amazonaws.com/NASA/6.+Turbofan+Engine+Degradation+Simulation+Data+Set.zip">PHM Society mirror</a>.</li>
-    <li id="src-9"><a href="https://arxiv.org/abs/2104.05049">arXiv 2104.05049</a>, published results on C-MAPSS FD001 and FD003.</li>
-    <li id="src-10"><a href="https://github.com/algorithmicsuperintelligence/openevolve">OpenEvolve</a>, GitHub.</li>
+    <li id="src-3">Andrej Karpathy, <a href="https://github.com/karpathy/autoresearch">autoresearch</a>, GitHub.</li>
+    <li id="src-4">NASA, Turbofan Engine Degradation Simulation (C-MAPSS), <a href="https://phm-datasets.s3.amazonaws.com/NASA/6.+Turbofan+Engine+Degradation+Simulation+Data+Set.zip">PHM Society mirror</a>.</li>
+    <li id="src-5"><a href="https://arxiv.org/abs/2104.05049">arXiv 2104.05049</a>, published results on C-MAPSS FD001 and FD003.</li>
+    <li id="src-6"><a href="https://github.com/algorithmicsuperintelligence/openevolve">OpenEvolve</a>, GitHub.</li>
   </ol>
 </section>
 
