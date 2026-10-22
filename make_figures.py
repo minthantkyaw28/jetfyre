@@ -41,19 +41,49 @@ def find(name):
 def greedy_log():
     df = pd.read_csv(ROOT / "results.tsv", sep="\t")
     df["best"] = df["mean_cost"].where(df["verdict"].isin(["baseline", "keep"])).ffill()
+    # Turns marked no-op (the edit never applied) are not experiments.
+    df["noop"] = df["error"].fillna("").str.startswith("no-op")
     return df
 
 
-def replay_curve(preds, c_fail):
-    """Mean cost for each T in T_GRID, same rule as evaluate.replay_cost."""
-    costs = np.zeros(len(T_GRID))
+def replay_curve(preds, c_fail, with_failures=False):
+    """Mean cost (and failure count) for each T in T_GRID, same rule as evaluate.replay_cost."""
+    costs, fails = np.zeros(len(T_GRID)), np.zeros(len(T_GRID), dtype=int)
     for _, g in preds.groupby("unit"):
         g = g.sort_values("cycle")
         p, life = g["pred"].to_numpy()[:-1], g["life_left"].to_numpy()[:-1]  # last row has 0 left
         for j, T in enumerate(T_GRID):
             hit = np.flatnonzero(p <= T)
             costs[j] += life[hit[0]] if hit.size else c_fail
-    return costs / preds["unit"].nunique()
+            fails[j] += 0 if hit.size else 1
+    costs /= preds["unit"].nunique()
+    return (costs, fails) if with_failures else costs
+
+
+def frontier():
+    """Mean cost against T at the base failure cost, for both models; marks each one's cheapest T."""
+    fig, ax = plt.subplots(figsize=(8, 4.5), dpi=150, facecolor=SURFACE)
+    lines = {"Baseline model": ("preds_baseline.csv", "#eb6834", (16, 26)), "Best model": ("preds_best.csv", "#2a78d6", (16, -20))}
+    summary = {}
+    for name, (fname, color, offset) in lines.items():
+        if not (OUT / fname).exists():
+            continue
+        costs, fails = replay_curve(pd.read_csv(OUT / fname), 500, with_failures=True)
+        j = int(np.argmin(costs))
+        summary[name] = {"T": int(T_GRID[j]), "mean_cost": round(float(costs[j]), 2), "failures": int(fails[j])}
+        ax.plot(T_GRID, costs, color=color, linewidth=2, label=name)
+        ax.scatter([T_GRID[j]], [costs[j]], s=48, color=color, edgecolor=SURFACE, linewidth=2, zorder=4)
+        ax.annotate(f"{name}: {costs[j]:.2f} at T = {T_GRID[j]}", (T_GRID[j], costs[j]), xytext=offset,
+                    textcoords="offset points", color=INK, fontsize=9,
+                    arrowprops={"arrowstyle": "-", "color": MUTED, "linewidth": 0.8})
+    style(ax, "The frontier: mean cost against the pull threshold T (failure costs 500)",
+          "Threshold T (pull when predicted life <= T)", "Mean cost per engine (cycles)")
+    ax.set_ylim(0, 80)
+    ax.legend(frameon=False, labelcolor=INK, loc="upper right")
+    fig.tight_layout()
+    fig.savefig(OUT / "frontier.png", facecolor=SURFACE)
+    plt.close(fig)
+    return summary
 
 
 def best_T():
@@ -84,7 +114,8 @@ def headline(df, optuna_best, third):
                           "best": float(best["wasted_cycles"])},
         # Share of the gap between the baseline model and a perfect oracle (cost 0) that the loop closed.
         "gap_closed": round((base["mean_cost"] - best["mean_cost"]) / base["mean_cost"], 4),
-        "turns": {"kept": int((df["verdict"] == "keep").sum()), "total": int((df["verdict"] != "baseline").sum())},
+        "turns": {"kept": int((df["verdict"] == "keep").sum()),
+                  "total": int(((df["verdict"] != "baseline") & ~df["noop"]).sum())},
         "third_player": third,
         "sealed": sealed(),
         "best_T": best_T(),
@@ -95,6 +126,9 @@ def kept_changes(df):
     lines = ["| Turn | Change | Mean cost |", "|---|---|---|"]
     for _, r in df[df["verdict"].isin(["baseline", "keep"])].iterrows():
         lines.append(f"| {r['turn']} | {str(r['hypothesis']).replace('|', '/')} | {r['mean_cost']:.2f} |")
+    for _, r in df[df["noop"]].iterrows():
+        lines.append(f"\nTurn {r['turn']} was a no-op re-test: its edit did not apply, so it re-ran the turn "
+                     f"{r['turn'] - 1} model. It is not counted as an experiment.")
     return "\n".join(lines) + "\n"
 
 
@@ -114,7 +148,7 @@ def style(ax, title, xlabel, ylabel):
 
 def ratchet(df):
     fig, ax = plt.subplots(figsize=(10, 4.2), dpi=150, facecolor=SURFACE)
-    tried = df.dropna(subset=["mean_cost"])
+    tried = df[~df["noop"]].dropna(subset=["mean_cost"])
     ax.scatter(tried["turn"], tried["mean_cost"], s=22, color="#a3a39e", zorder=2, label="Every evaluated change")
     ax.plot(df["turn"], df["best"], color=COLORS["Greedy agent"], linewidth=2, drawstyle="steps-post",
             zorder=3, label="Best kept so far")
@@ -174,6 +208,7 @@ def main():
     OUT.mkdir(exist_ok=True)
     df = greedy_log()
     ratchet(df)
+    print("frontier (cheapest T at failure cost 500):", json.dumps(frontier()))
     optuna_best, third = players(df)
     (OUT / "kept_changes.md").write_text(kept_changes(df))
     (OUT / "headline.json").write_text(json.dumps(headline(df, optuna_best, third), indent=1))

@@ -417,7 +417,7 @@ python publish_site.py</code></pre>
 </section>
 
 <footer>
-  <p>Built at the Moonfire Ventures Hack by [Team name].</p>
+  <p>Built at the Moonfire Ventures Hack by Jetfyre.</p>
   <p>The data is a NASA simulation, not flight data from any airline.</p>
 </footer>
 
@@ -512,6 +512,8 @@ if (typeof document !== "undefined") (async function () {
       const isNum = s => /^-?[\d.,]+$/.test(s);
       document.getElementById("kept").innerHTML = "<table><thead><tr>" + h.map(c => `<th scope="col">${c}</th>`).join("") +
         "</tr></thead><tbody>" + body.map(r => "<tr>" + r.map(c => `<td${isNum(c) ? ' class="n"' : ""}>${c}</td>`).join("") + "</tr>").join("") + "</tbody></table>";
+      const notes = md.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith("|"));
+      if (notes.length) document.getElementById("kept").insertAdjacentHTML("afterend", notes.map(n => `<p class="note">${esc(n)}</p>`).join(""));
     }
   }
 

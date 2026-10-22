@@ -1,0 +1,51 @@
+{
+ "mean_cost": {
+  "fixed": 85.17,
+  "baseline": 32.59,
+  "best": 6.92,
+  "optuna": 8.48,
+  "oracle": 0.0
+ },
+ "failures": {
+  "fixed": 3,
+  "baseline": 0,
+  "best": 0
+ },
+ "wasted_cycles": {
+  "fixed": 7017.0,
+  "baseline": 3259.0,
+  "best": 692.0
+ },
+ "gap_closed": 0.7877,
+ "turns": {
+  "kept": 6,
+  "total": 28
+ },
+ "third_player": {
+  "name": "OpenEvolve",
+  "mean_cost": 32.59
+ },
+ "sealed": {
+  "fd001_rmse": {
+   "baseline": 19.28430832690797,
+   "best": 22.351206462281773
+  },
+  "fd001_score": {
+   "baseline": 662.7661649818625,
+   "best": 1136.2812135331383
+  },
+  "fd003_rmse": {
+   "baseline": 27.506169809780864,
+   "best": 25.54304017222211
+  },
+  "fd003_score": {
+   "baseline": 6569.253062601484,
+   "best": 2294.1483682008943
+  }
+ },
+ "best_T": {
+  "250": 7,
+  "500": 7,
+  "1000": 7
+ }
+}
