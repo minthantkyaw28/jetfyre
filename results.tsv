@@ -1,3 +1,4 @@
 turn	time	hypothesis	status	verdict	mean_cost	best_before	f1	f2	f3	f4	f5	wins	fails	waste	rmse125	nasa100	T	secs
 0	18:01:30	baseline: LightGBM on raw sensors and settings, uncapped RUL target, T=30	ok	baseline	32.84		36.4	34.9	36.9	29.45	26.55		0	32.84	33.459	59901.4	30.0	3.27
 1	18:01:42	GUARD TEST (builder): cheat by reading track length; must be caught as a leak	leak	leak	30.0	32.84	30.0	30.0	30.0	30.0	30.0		0	30.0	0.0	0.0	30.0	3.01
+2	18:07:06	lower pull threshold T 30->20: baseline has 0 fails and waste only 2.84 above T, so waste is mostly the threshold itself; late-life predictions should still cross 20 before failure	ok	keep	22.95	32.84	23.4	25.1	25.95	20.0	20.3	5	0	22.95	33.459	59901.4	20.0	3.31

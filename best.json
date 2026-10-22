@@ -1,14 +1,14 @@
 {
- "turn": 0,
- "hypothesis": "baseline: LightGBM on raw sensors and settings, uncapped RUL target, T=30",
+ "turn": 2,
+ "hypothesis": "lower pull threshold T 30->20: baseline has 0 fails and waste only 2.84 above T, so waste is mostly the threshold itself; late-life predictions should still cross 20 before failure",
  "status": "ok",
- "T": 30.0,
+ "T": 20.0,
  "fold_costs": [
-  36.4,
-  34.9,
-  36.9,
-  29.45,
-  26.55
+  23.4,
+  25.1,
+  25.95,
+  20.0,
+  20.3
  ],
  "fold_fails": [
   0,
@@ -18,40 +18,40 @@
   0
  ],
  "fold_waste": [
-  36.4,
-  34.9,
-  36.9,
-  29.45,
-  26.55
+  23.4,
+  25.1,
+  25.95,
+  20.0,
+  20.3
  ],
  "cost_by_cfail": {
   "250": [
-   36.4,
-   34.9,
-   36.9,
-   29.45,
-   26.55
+   23.4,
+   25.1,
+   25.95,
+   20.0,
+   20.3
   ],
   "500": [
-   36.4,
-   34.9,
-   36.9,
-   29.45,
-   26.55
+   23.4,
+   25.1,
+   25.95,
+   20.0,
+   20.3
   ],
   "1000": [
-   36.4,
-   34.9,
-   36.9,
-   29.45,
-   26.55
+   23.4,
+   25.1,
+   25.95,
+   20.0,
+   20.3
   ]
  },
- "mean_cost": 32.84,
+ "mean_cost": 22.95,
  "fails": 0,
- "waste": 32.84,
+ "waste": 22.95,
  "rmse125": 33.459,
  "nasa100": 59901.4,
  "leak_ok": true,
- "secs": 3.27
+ "secs": 3.31
 }
