@@ -158,6 +158,36 @@ figcaption b { font-size: 18px; font-weight: 600; color: var(--ink); }
 .slot { border: 2px dashed var(--rule); min-height: 180px; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; color: var(--muted); font-family: var(--head); font-size: 20px; }
 .slot.wide { min-height: 260px; }
 
+/* Inside model.py */
+.stations { list-style: none; padding: 0; margin: 28px 0 36px; display: grid; gap: 30px; max-width: 1040px; }
+.stations li { border-top: 2px solid var(--ink); padding-top: 14px; }
+.stations h3 { font-size: 25px; margin-bottom: 6px; }
+.stations p { font-size: 17px; line-height: 1.5; margin: 0; }
+@media (min-width: 900px) {
+  .stations { grid-template-columns: repeat(4, 1fr); gap: 0; }
+  .stations li { padding-right: 20px; }
+  .stations li + li { padding-left: 20px; border-left: 1px solid var(--rule); }
+}
+svg.spark { display: block; width: 100%; height: 96px; margin-top: 14px; overflow: visible; }
+svg.storychart { display: block; width: 100%; min-width: 680px; height: auto; }
+.chart-scroll { overflow-x: auto; }
+.storychart text, .spark text { font-family: var(--head); font-size: 19px; fill: var(--ink-2); }
+.storychart .big { font-size: 22px; font-weight: 600; fill: var(--ink); }
+.ln-raw { fill: none; stroke: var(--muted); stroke-width: 1; opacity: 0.7; }
+.ln-smooth, .ln-pred { fill: none; stroke: var(--ink); stroke-width: 2; }
+.ln-true { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.ln-T { stroke: var(--caution); stroke-width: 2; stroke-dasharray: 6 4; }
+.ln-grid { stroke: var(--rule); stroke-width: 1; }
+.mk-pull { fill: var(--caution); stroke: var(--paper); stroke-width: 2; }
+.ln-pull { stroke: var(--caution); stroke-width: 2; }
+.zone-waste { fill: var(--caution); opacity: 0.25; }
+.mk-fail { fill: var(--warning); }
+.story-key { font-family: var(--head); font-size: 18px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 6px 26px; margin: 10px 0 30px; }
+.swatch { display: inline-block; width: 22px; height: 0; border-top: 2px solid var(--ink); vertical-align: middle; margin-right: 6px; }
+.swatch.dash { border-top: 2px dashed var(--muted); }
+.swatch.amber { border-top: 2px dashed var(--caution); }
+.swatch.red { border-top: 8px solid var(--warning); width: 10px; }
+
 ol.sources { padding-left: 1.4em; font-size: 17px; max-width: 76ch; }
 ol.sources li { margin-bottom: 8px; }
 ol.sources li:target { background: var(--paper-2); outline: 2px solid var(--advisory); outline-offset: 4px; }
@@ -229,6 +259,53 @@ footer p { margin: 0 0 4px; }
     <li>The result is logged, and the loop starts again.</li>
   </ol>
   <div class="sealed"><p>The FD001 test set and all of FD003 are sealed.<sup><a href="#src-8" aria-label="Source 8">8</a></sup> Nothing in the loop reads them. <code>final.py</code> opens them once, after the last turn.</p></div>
+</section>
+
+<section id="model">
+  <h2>Inside model.py</h2>
+  <p><code>model.py</code> is the only file the agent may change, and it answers one question every cycle: keep flying, or pull the engine now? Below is the best version at work on engine <span class="num" data-s="unit" data-fmt="int">[__]</span>, which it never saw in training.</p>
+  <ol class="stations">
+    <li>
+      <h3>Read the sensors</h3>
+      <p>Each cycle brings 24 numbers: 3 operating settings and 21 sensors. Shown here is the <span data-s="sensor_label" data-fmt="text">turbine outlet temperature</span>, which climbs as the engine wears.</p>
+      <svg class="spark" id="st-read" viewBox="0 0 240 96" preserveAspectRatio="none" role="img" aria-label="Raw sensor readings over the engine's life."></svg>
+    </li>
+    <li>
+      <h3>Smooth them</h3>
+      <p>One reading is noisy, so each sensor also gets its average over the last <span class="num" data-s="window" data-fmt="int">[__]</span> cycles. Nothing after the current cycle is ever used.</p>
+      <svg class="spark" id="st-smooth" viewBox="0 0 240 96" preserveAspectRatio="none" role="img" aria-label="The same sensor with its backward rolling average drawn over the raw readings."></svg>
+    </li>
+    <li>
+      <h3>Estimate life left</h3>
+      <p>Gradient-boosted trees, trained on 80 other engines, turn those numbers into cycles of life left. It aims low on purpose, at the <span class="num" data-s="quantile" data-fmt="pctile">[__]</span> percentile, so doubt pushes it towards an early pull.</p>
+      <svg class="spark" id="st-estimate" viewBox="0 0 240 96" preserveAspectRatio="none" role="img" aria-label="Predicted life left against true life left over the engine's life."></svg>
+    </li>
+    <li>
+      <h3>Decide</h3>
+      <p>The first cycle the estimate reaches <span class="num" data-s="T" data-fmt="int">[__]</span> or fewer, the engine comes off the wing. Here that was cycle <span class="num" data-s="pull_cycle" data-fmt="int">[__]</span>.</p>
+      <svg class="spark" id="st-decide" viewBox="0 0 240 96" preserveAspectRatio="none" role="img" aria-label="The last cycles of the engine's life, where the estimate crosses the pull line."></svg>
+    </li>
+  </ol>
+
+  <figure id="story-fig">
+    <div class="slot wide" id="story-slot">Waiting for figures/model_story.json</div>
+    <div class="chart-scroll"><svg class="storychart" id="story" viewBox="0 0 960 400" role="img" aria-label="One engine's whole life, waiting for data." hidden></svg></div>
+  </figure>
+  <p class="story-key" id="story-key" hidden><span><span class="swatch dash"></span>True life left</span><span><span class="swatch"></span>What model.py predicts</span><span><span class="swatch amber"></span>The pull line, T</span><span><span class="swatch red"></span>Failure</span></p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Choice in model.py</th><th scope="col">Setting</th><th scope="col">Why</th></tr></thead>
+      <tbody>
+        <tr><td>Smoothing window</td><td><span class="num" data-s="window" data-fmt="int">[__]</span> cycles</td><td>Averages out sensor noise without looking ahead.</td></tr>
+        <tr><td>Life cap on the target</td><td><span class="num" data-s="life_cap" data-fmt="int">[__]</span> cycles</td><td>Early in life the exact number does not matter, only that plenty is left.</td></tr>
+        <tr><td>End-of-life weight</td><td><span class="num" data-s="end_weight" data-fmt="int">[__]</span> times, last <span class="num" data-s="end_rows" data-fmt="int">[__]</span> cycles</td><td>Pull decisions happen there, so mistakes there cost the most.</td></tr>
+        <tr><td>Cautious estimate</td><td><span class="num" data-s="quantile" data-fmt="pctile">[__]</span> percentile</td><td>Aiming low makes a late pull rarer than an early one.</td></tr>
+        <tr><td>Pull line T</td><td><span class="num" data-s="T" data-fmt="int">[__]</span> cycles</td><td>Found by the loop. Lower and engines fail; higher and life is thrown away.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p id="story-caveat" hidden>This is the version the loop kept as best. On the sealed FD003 fleet, which has a fault type it never trained on, its cautious estimate was not cautious enough: <span class="num" data-s="fd003_failures" data-fmt="int">[__]</span> of <span class="num" data-s="fd003_engines" data-fmt="int">[__]</span> engines ran to failure.</p>
 </section>
 
 <section id="score">
@@ -348,9 +425,9 @@ footer p { margin: 0 0 4px; }
     <div class="slot">Waiting for figures/scarcity.png</div>
     <figcaption><b>Scarcity.</b> How the cheapest setting moves when a failure costs 250, 500 or 1000 cycles.</figcaption>
   </figure>
-  <figure class="half" data-fig="sealed_test.png" data-alt="Predicted against true life left at the last recorded cycle of each sealed test engine, for FD001 and FD003.">
+  <figure class="half" data-fig="sealed_test.png" data-alt="Two bar charts of the sealed FD003 replay: mean cost per engine at failure prices of 250, 500 and 1000, and the number of engines that ran to failure, for the baseline and best models.">
     <div class="slot">Waiting for figures/sealed_test.png</div>
-    <figcaption><b>The sealed test.</b> Predicted against true life at the last recorded cycle of each test engine.</figcaption>
+    <figcaption><b>The sealed test.</b> Every engine in FD003, a fleet with a fault type neither model trained on, replayed new to failure.</figcaption>
   </figure>
 
   <h3>Changes the loop kept</h3>
@@ -529,6 +606,86 @@ if (typeof document !== "undefined") (async function () {
       const notes = md.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith("|"));
       if (notes.length) document.getElementById("kept").insertAdjacentHTML("afterend", notes.map(n => `<p class="note">${esc(n)}</p>`).join(""));
     }
+  }
+
+  // Inside model.py: one held-out engine traced through the model, drawn from model_story.json.
+  const storyRaw = await fetchText("model_story.json");
+  if (storyRaw) {
+    let st = null;
+    try { st = JSON.parse(storyRaw); } catch (e) { st = null; }
+    if (st) drawStory(st);
+  }
+  function drawStory(st) {
+    const SFMT = { int: v => String(Math.round(v)), text: v => String(v), pctile: v => Math.round(v * 100) + "th" };
+    document.querySelectorAll("[data-s]").forEach(el => {
+      const v = st[el.dataset.s];
+      if (v !== undefined && v !== null) { el.textContent = SFMT[el.dataset.fmt || "int"](v); el.classList.add("filled"); }
+    });
+    if (st.fd003_failures !== undefined) document.getElementById("story-caveat").hidden = false;
+    const NS = "http://www.w3.org/2000/svg";
+    const el = (tag, attrs, parent, text) => {
+      const e = document.createElementNS(NS, tag);
+      for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+      if (text !== undefined) e.textContent = text;
+      parent.appendChild(e);
+      return e;
+    };
+    const path = (xs, ys, sx, sy) => xs.map((x, i) => (i ? "L" : "M") + sx(x).toFixed(1) + " " + sy(ys[i]).toFixed(1)).join("");
+    const n = st.cycle.length, last = st.cycle[n - 1];
+    const lo = Math.min(...st.raw), hi = Math.max(...st.raw);
+    const lifeMax = Math.max(...st.life_left, ...st.pred);
+    // Station sparklines (viewBox 240 x 96).
+    const spark = (id, draw) => { const svg = document.getElementById(id); svg.replaceChildren(); draw(svg); };
+    const sxAll = c => 4 + (c - 1) / (last - 1) * 232;
+    const sySensor = v => 90 - (v - lo) / (hi - lo) * 84;
+    const syLife = v => 90 - v / lifeMax * 84;
+    spark("st-read", svg => el("path", { d: path(st.cycle, st.raw, sxAll, sySensor), class: "ln-raw" }, svg));
+    spark("st-smooth", svg => {
+      el("path", { d: path(st.cycle, st.raw, sxAll, sySensor), class: "ln-raw" }, svg);
+      el("path", { d: path(st.cycle, st.smooth, sxAll, sySensor), class: "ln-smooth" }, svg);
+    });
+    spark("st-estimate", svg => {
+      el("path", { d: path(st.cycle, st.life_left, sxAll, syLife), class: "ln-true" }, svg);
+      el("path", { d: path(st.cycle, st.pred, sxAll, syLife), class: "ln-pred" }, svg);
+    });
+    spark("st-decide", svg => {
+      const k = Math.max(0, n - 40), cs = st.cycle.slice(k), ps = st.pred.slice(k);
+      const zmax = Math.max(...ps, st.T * 2);
+      const sx = c => 4 + (c - cs[0]) / (last - cs[0]) * 232, sy = v => 90 - Math.max(0, v) / zmax * 84;
+      el("line", { x1: 4, x2: 236, y1: sy(st.T), y2: sy(st.T), class: "ln-T", "vector-effect": "non-scaling-stroke" }, svg);
+      el("path", { d: path(cs, ps, sx, sy), class: "ln-pred" }, svg);
+      el("circle", { cx: sx(st.pull_cycle), cy: sy(st.pred[st.cycle.indexOf(st.pull_cycle)]), r: 4, class: "mk-pull" }, svg);
+    });
+    // The full story (viewBox 960 x 400).
+    const svg = document.getElementById("story");
+    svg.replaceChildren();
+    const L = 70, R = 930, Tp = 30, B = 340, ymax = Math.ceil(lifeMax / 50) * 50;
+    const sx = c => L + (c - 1) / (last - 1) * (R - L), sy = v => B - v / ymax * (B - Tp);
+    for (let v = 0; v <= ymax; v += 50) {
+      el("line", { x1: L, x2: R, y1: sy(v), y2: sy(v), class: "ln-grid" }, svg);
+      el("text", { x: L - 10, y: sy(v) + 5, "text-anchor": "end" }, svg, v);
+    }
+    for (let c = 50; c < last - 30; c += 50) el("text", { x: sx(c), y: B + 24, "text-anchor": "middle" }, svg, c);
+    el("text", { x: (L + R) / 2, y: B + 50, "text-anchor": "middle" }, svg, "Cycle");
+    el("text", { x: 18, y: (Tp + B) / 2, "text-anchor": "middle", transform: `rotate(-90 18 ${(Tp + B) / 2})` }, svg, "Cycles of life left");
+    const xp = sx(st.pull_cycle), xf = sx(last);
+    el("rect", { x: xp, y: Tp, width: Math.max(2, xf - xp), height: B - Tp, class: "zone-waste" }, svg);
+    el("line", { x1: L, x2: R, y1: sy(st.T), y2: sy(st.T), class: "ln-T" }, svg);
+    el("path", { d: path(st.cycle, st.life_left, sx, sy), class: "ln-true" }, svg);
+    el("path", { d: path(st.cycle, st.pred, sx, sy), class: "ln-pred" }, svg);
+    el("rect", { x: xf - 4, y: B - 18, width: 8, height: 18, class: "mk-fail" }, svg);
+    el("line", { x1: xp, x2: xp, y1: sy(st.pred[st.cycle.indexOf(st.pull_cycle)]), y2: B, class: "ln-pull" }, svg);
+    el("circle", { cx: xp, cy: sy(st.pred[st.cycle.indexOf(st.pull_cycle)]), r: 6, class: "mk-pull" }, svg);
+    el("text", { x: xp - 14, y: sy(st.T) - 118, "text-anchor": "end", class: "big" }, svg, `Pulled at cycle ${st.pull_cycle}`);
+    el("text", { x: xp - 14, y: sy(st.T) - 92, "text-anchor": "end" }, svg, `${st.left_at_pull} cycles of life thrown away`);
+    el("text", { x: xf, y: B + 24, "text-anchor": "end", class: "big" }, svg, `Failure, cycle ${last}`);
+    el("text", { x: L + 8, y: sy(st.T) - 8 }, svg, `Pull line, T = ${st.T}`);
+    el("text", { x: sx(st.cycle[Math.floor(n * 0.22)]), y: sy(st.life_left[Math.floor(n * 0.22)]) - 10 }, svg, "True life left");
+    el("text", { x: sx(st.cycle[Math.floor(n * 0.08)]), y: sy(st.pred[Math.floor(n * 0.08)]) + 46 }, svg, "Prediction, capped early in life");
+    svg.setAttribute("aria-label", `Engine ${st.unit}, from new to failure at cycle ${last}. The prediction follows the true life left and crosses the pull line T = ${st.T} at cycle ${st.pull_cycle}, so the engine is pulled with ${st.left_at_pull} cycles of life left.`);
+    svg.hidden = false;
+    document.getElementById("story-slot").remove();
+    document.getElementById("story-key").hidden = false;
   }
 
   // Slides link only if deck.pdf exists.
