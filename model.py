@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.ensemble import HistGradientBoostingRegressor
 
 # ---- T: pull the engine at the first row where predicted life <= T ----
-T = 10
+T = 7
 
 # ---- Features: computed row by row, nothing looks ahead ----
 SETTINGS = ["setting_1", "setting_2", "setting_3"]
@@ -34,7 +34,7 @@ def target(track):
 
 
 # ---- Model ----
-_model = HistGradientBoostingRegressor(random_state=0)
+_model = HistGradientBoostingRegressor(loss="quantile", quantile=0.35, random_state=0)
 
 
 def fit(tracks):
