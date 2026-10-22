@@ -53,7 +53,7 @@ def main(hypothesis):
             verdict = "revert"
 
     new = not RESULTS.exists()
-    turn = 1 if new else sum(1 for _ in RESULTS.open()) 
+    turn = 1 if new else sum(1 for _ in RESULTS.open())
     with RESULTS.open("a", newline="") as f:
         w = csv.writer(f, delimiter="\t")
         if new:
