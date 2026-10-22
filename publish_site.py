@@ -13,6 +13,7 @@ ROOT = Path(__file__).parent
 OUT, DOCS = ROOT / "out", ROOT / "docs"
 FIGURES = DOCS / "figures"
 FILES = ["headline.json", "kept_changes.md", "preds_baseline.csv", "preds_best.csv"]
+CODE_BRANCH = "cmapss-harness"  # the harness lives on this branch of the repo; main holds only the site
 
 
 def repo_url():
@@ -22,13 +23,13 @@ def repo_url():
     except subprocess.CalledProcessError:
         return None
     url = re.sub(r"^git@github\.com:", "https://github.com/", url)
-    return re.sub(r"\.git$", "", url)
+    return re.sub(r"\.git$", "", url) + f"/tree/{CODE_BRANCH}"
 
 
 def main():
     FIGURES.mkdir(parents=True, exist_ok=True)
     copied = []
-    for src in sorted(OUT.glob("*.png")) + [OUT / f for f in FILES]:
+    for src in sorted(OUT.glob("*.png")) + sorted(OUT.glob("*.gif")) + [OUT / f for f in FILES]:
         if src.exists():
             shutil.copy2(src, FIGURES / src.name)
             copied.append(src.name)

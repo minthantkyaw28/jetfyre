@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>When to pull an engine</title>
+<title>Pull it the day before it breaks</title>
 <meta name="description" content="An AI agent searches for the rule that decides when to take a jet engine off the wing, scored by replaying held-out NASA C-MAPSS engines and pricing every pull.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,10 +52,12 @@ section { border-top: 1px solid var(--rule); padding: 56px 0 48px; }
 .band a { color: var(--band-advisory); }
 .band code { background: #1f3344; color: var(--band-ink); }
 .hero { padding: 72px 0 64px; }
-.hero h1 { font-size: clamp(52px, 10vw, 112px); margin: 0 0 18px; font-weight: 700; }
+.hero h1 { font-size: clamp(52px, 10vw, 112px); margin: 0 0 18px; font-weight: 700; text-wrap: balance; max-width: 16ch; }
 .hero .lede { font-size: 22px; color: var(--band-muted); max-width: 46ch; margin-bottom: 28px; }
 .hero .links { font-family: var(--head); font-size: 22px; display: flex; gap: 28px; flex-wrap: wrap; margin: 0 0 52px; }
 .life { max-width: 880px; }
+.hero-anim { display: block; max-width: 960px; }
+.hero-anim img { display: block; width: 100%; height: auto; border: 1px solid var(--band-rule); border-radius: 3px; }
 .life-ends { display: flex; justify-content: space-between; font-family: var(--head); font-size: 18px; color: var(--band-muted); margin-bottom: 8px; }
 .life-bar { position: relative; height: 34px; border: 1px solid var(--band-rule); border-radius: 3px;
   background: repeating-linear-gradient(90deg, var(--band-rule) 0 1px, transparent 1px 10%) , #132433; }
@@ -179,10 +181,10 @@ footer p { margin: 0 0 4px; }
 
 <header class="band">
   <div class="wrap hero">
-    <h1>When to pull an engine</h1>
-    <p class="lede">An AI agent rewrites one model file, a fixed referee replays held-out engines, and every pull decision is priced in cycles of engine life.</p>
-    <p class="links"><a id="repo-link" href="https://github.com/minthantkyaw28/jetfyre">Code on GitHub</a><a id="deck-link" href="deck.pdf" hidden>Slides (PDF)</a></p>
-    <div class="life" role="img" aria-label="A life bar from a new engine on the left to failure on the right, with tick marks. A red block marks failure at the right end. An amber marker labelled The right day sits just before it. Pulling to the left of the marker throws life away; pulling to the right of it risks the aircraft on the ground.">
+    <h1>Pull it the day before it breaks</h1>
+    <p class="lede">Pull an engine too soon and the airline throws away life it already paid for. Leave it too long and the aircraft sits on the ground. We handed an AI agent one file and billed it for every cycle it got wrong.</p>
+    <p class="links"><a id="repo-link" href="https://github.com/minthantkyaw28/jetfyre/tree/cmapss-harness">Code on GitHub</a><a id="deck-link" href="deck.pdf" hidden>Slides (PDF)</a></p>
+    <div class="life" id="hero-life" role="img" aria-label="A life bar from a new engine on the left to failure on the right, with tick marks. A red block marks failure at the right end. An amber marker labelled The right day sits just before it. Pulling to the left of the marker throws life away; pulling to the right of it risks the aircraft on the ground.">
       <div class="life-ends" aria-hidden="true"><span>New engine</span><span>Failure</span></div>
       <div class="life-bar" aria-hidden="true">
         <div class="life-fail"></div>
@@ -499,6 +501,19 @@ if (typeof document !== "undefined") (async function () {
     img.onload = () => fig.querySelector(".slot").replaceWith(img);
     img.src = FIG + fig.dataset.fig;
   });
+
+  // Hero: swap the CSS life bar for the animation once it loads; reduced motion gets the still frame.
+  const hero = new Image();
+  hero.onload = () => {
+    hero.onload = null;  // moving the img into <picture> reloads it; run once
+    const pic = document.createElement("picture");
+    pic.className = "hero-anim";
+    pic.innerHTML = '<source media="(prefers-reduced-motion: reduce)" srcset="' + FIG + 'hero.png">';
+    hero.alt = "Animation of twelve held-out engines running cycle by cycle under the best model. Each bar fills as the engine flies, an amber mark shows where it is pulled with a few cycles of life left, and a red block marks the failure point it avoided.";
+    pic.appendChild(hero);
+    document.getElementById("hero-life").replaceWith(pic);
+  };
+  hero.src = FIG + "hero.gif";
 
   // Kept changes: a Markdown pipe table rendered as HTML.
   const md = await fetchText("kept_changes.md");

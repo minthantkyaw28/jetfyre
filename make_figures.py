@@ -204,8 +204,72 @@ def players(df):
     return optuna_best, third or {"name": None, "mean_cost": None}
 
 
+def hero_animation(n_engines=12, T=7, step=3):
+    """out/hero.gif (and a still, hero.png): held-out engines run cycle by cycle under the best model."""
+    from matplotlib.animation import FuncAnimation, PillowWriter
+    path = OUT / "preds_best.csv"
+    if not path.exists():
+        return
+    preds = pd.read_csv(path)
+    lives = preds.groupby("unit")["life_left"].max() + 1
+    units = lives.sort_values().index[np.linspace(0, len(lives) - 1, n_engines).round().astype(int)]
+    rows = []
+    for u in units:
+        g = preds[preds["unit"] == u].sort_values("cycle")
+        hit = np.flatnonzero((g["pred"].to_numpy() <= T) & (g["life_left"].to_numpy() > 0))
+        life = int(lives[u])
+        rows.append({"life": life, "stop": int(hit[0]) + 1 if hit.size else life,
+                     "left": int(g["life_left"].to_numpy()[hit[0]]) if hit.size else 0, "failed": not hit.size})
+    BG, TRACK, RULE, AMBER, RED, INK_D, MUTED_D, FILL = ("#0f1c28", "#132433", "#2d4050", "#ffbf3c",
+                                                          "#ff6b6b", "#e4eaf0", "#a7b6c4", "#3b5770")
+    xmax = max(r["life"] for r in rows) + 95
+    n = len(rows)
+    fig = plt.figure(figsize=(9.6, 4.6), dpi=100, facecolor=BG)
+    ax = fig.add_axes([0.02, 0.1, 0.96, 0.78])
+    ax.set_facecolor(BG)
+    ax.set_xlim(0, xmax)
+    ax.set_ylim(-0.6, n - 0.4)
+    ax.axis("off")
+    for i, r in enumerate(rows):
+        y = n - 1 - i
+        ax.add_patch(plt.Rectangle((0, y - 0.28), r["life"], 0.56, color=TRACK, ec=RULE, lw=0.6))
+        ax.add_patch(plt.Rectangle((r["life"] - 5, y - 0.28), 5, 0.56, color=RED))
+    fills = [ax.add_patch(plt.Rectangle((0, n - 1 - i - 0.28), 0, 0.56, color=FILL)) for i in range(n)]
+    marks = [ax.plot([], [], color=AMBER, lw=3, solid_capstyle="round")[0] for _ in rows]
+    labels = [ax.text(0, n - 1 - i, "", va="center", fontsize=9, color=AMBER) for i in range(n)]
+    title = fig.text(0.02, 0.93, "", color=INK_D, fontsize=13, weight="bold")
+    tally = fig.text(0.02, 0.03, "", color=MUTED_D, fontsize=10)
+    end = max(r["stop"] for r in rows)
+    frames = list(range(0, end + step, step)) + [end] * 30
+
+    def draw(t):
+        pulled = failed = wasted = 0
+        for i, r in enumerate(rows):
+            y = n - 1 - i
+            fills[i].set_width(min(t, r["stop"]))
+            if t >= r["stop"]:
+                if r["failed"]:
+                    failed += 1
+                    labels[i].set_text("ran to failure")
+                    labels[i].set_color(RED)
+                else:
+                    pulled += 1
+                    wasted += r["left"]
+                    marks[i].set_data([r["stop"], r["stop"]], [y - 0.38, y + 0.38])
+                    labels[i].set_text(f"pulled, {r['left']} cycle{'s' * (r['left'] != 1)} left")
+                labels[i].set_x(r["life"] + 4)
+        title.set_text(f"Best model on held-out engines, cycle {min(t, end)}")
+        tally.set_text(f"pulled {pulled}    failed {failed}    cycles thrown away {wasted}")
+
+    FuncAnimation(fig, draw, frames=frames).save(OUT / "hero.gif", writer=PillowWriter(fps=18))
+    draw(end)
+    fig.savefig(OUT / "hero.png", facecolor=BG)
+    plt.close(fig)
+
+
 def main():
     OUT.mkdir(exist_ok=True)
+    hero_animation()
     df = greedy_log()
     ratchet(df)
     print("frontier (cheapest T at failure cost 500):", json.dumps(frontier()))
