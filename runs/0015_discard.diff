@@ -1,0 +1,13 @@
+diff --git a/model.py b/model.py
+index 7bf4474..957557a 100644
+--- a/model.py
++++ b/model.py
+@@ -19,7 +19,7 @@ INFORMATIVE = ["s2", "s3", "s4", "s7", "s8", "s9", "s11", "s12", "s13", "s14", "
+ 
+ 
+ def features(track: pd.DataFrame) -> pd.DataFrame:
+-    roll = track[INFORMATIVE].rolling(10, min_periods=1).mean().add_suffix("_r10")  # causal
++    roll = track[INFORMATIVE].rolling(20, min_periods=1).mean().add_suffix("_r20")  # causal
+     return pd.concat([track[SETTINGS], roll], axis=1)  # raw per-cycle sensors dropped
+ 
+ 

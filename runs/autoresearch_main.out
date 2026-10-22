@@ -22,3 +22,5 @@ autoresearch: 45 min, max 45 turns, cap 240s/turn
 === turn 11 (results rows: 14) 18:20:43 → runs/agent_turn_0014.log
   last: 13	add a linear health-index feature (T0012 retry, previously blocked by an untracked PDF): a StandardScaler+Ridge fitted in fit() on the 14 causal r10 sensor means against RUL capped at 125, fed to LightGBM alongside the r10 means: combining 14 sensors averages out their independent per-cycle noise (~sqrt(14)), so trees split on one low-noise degradation axis near RUL~T instead of noisy single-sensor thresholds, which should cut the early dips below T=12 that drive f1/f3 waste (~13) without new fails	discard	11.05
 === turn 12 (results rows: 15) 18:22:31 → runs/agent_turn_0015.log
+  last: 14	sample weights 1/(RUL+10) in fit: point the L2 loss at the late-life region where the pull decision happens (RUL~T=12 gets ~10x the weight of RUL~200), so trees spend splits separating RUL 5-30 instead of fitting unpredictable early-life RUL; less noise and error at the RUL~T crossing should cut f1/f3 waste (~13) without new fails	discard	11.58
+=== turn 13 (results rows: 16) 18:23:46 → runs/agent_turn_0016.log
