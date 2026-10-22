@@ -1,0 +1,35 @@
+diff --git a/model.py b/model.py
+index fa13fdc..c14dbbd 100644
+--- a/model.py
++++ b/model.py
+@@ -11,7 +11,7 @@ import lightgbm as lgb
+ import numpy as np
+ import pandas as pd
+ 
+-T = 8.5  # pull threshold, in cycles of predicted remaining life
++T = 7.5  # pull threshold, in cycles of predicted remaining life
+ 
+ SETTINGS = ["os1", "os2", "os3"]
+ SENSORS = [f"s{i}" for i in range(1, 22)]
+@@ -31,10 +31,17 @@ class Model:
+     def fit(self, tracks):
+         X = pd.concat([features(t) for t in tracks], ignore_index=True)
+         y = np.concatenate([target(t) for t in tracks])
+-        self.m = lgb.LGBMRegressor(n_estimators=200, learning_rate=0.05, num_leaves=31,
+-                                   random_state=0, n_jobs=4, verbose=-1)
+-        self.m.fit(X, y, sample_weight=1.0 / (y + 10.0))  # conservative where late life is ambiguous
++        w = 1.0 / (y + 10.0)  # conservative where late life is ambiguous
++        self.c = float(np.sum(w * y) / np.sum(w))  # same start as boost_from_average
++
++        def asym_l2(y_true, y_pred):  # over-prediction (late pull) costs 2x
++            k = np.where(y_pred > y_true, 2.0, 1.0) * w
++            return k * (y_pred - y_true), k
++
++        self.m = lgb.LGBMRegressor(objective=asym_l2, n_estimators=200, learning_rate=0.05,
++                                   num_leaves=31, random_state=0, n_jobs=4, verbose=-1)
++        self.m.fit(X, y - self.c)
+         return self
+ 
+     def predict(self, track):
+-        return self.m.predict(features(track))
++        return self.m.predict(features(track)) + self.c
