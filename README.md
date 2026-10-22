@@ -2,6 +2,10 @@
 
 **Early is wasted engine life. Late is a grounded aircraft and a headline.**
 
+### 🔗 Live dashboard: **[jetfyre.vercel.app](https://jetfyre.vercel.app)**
+
+The dashboard shows a 3D fleet with per-engine remaining-life status, the autoresearch agent cluster running the loop, and agent observability. Source: [`web/`](web/).
+
 Jetfyre is an autoresearch loop for deciding when to pull a jet engine. An AI agent edits one file, `model.py`, which holds the remaining-useful-life (RUL) model and the pull threshold `T`. A fixed evaluator replays held-out NASA C-MAPSS turbofans cycle by cycle, the way an airline would live it, and charges for every cycle of life thrown away plus **500 cycles per failure**. A change is kept with a git commit only if the mean cost falls **and** it wins on at least 4 of 5 engine folds. Otherwise it is reverted. At the end, a locked holdout is opened once: the official FD001 test, and FD003, which adds a **second fault mode the loop never saw**. If the model holds there, the loop learned wear, not the benchmark.
 
 Built for the Moonfire Ventures Hack, "Autoresearch for Real-World Value". The brief is in `knowledge/hack-brief.md`.
