@@ -353,6 +353,13 @@ def model_story():
             story["fd003_failures"], story["fd003_engines"] = rep["failures"], rep["engines"]
         if base:
             story["fd003_failures_baseline"] = base["failures"]
+    story["T_baseline"] = BASE_T
+    fleet = OUT / "fleet.json"
+    if fleet.exists():
+        for r in json.loads(fleet.read_text()):
+            if r["capacity"] == "2 a week" and r["policy"] == "threshold":
+                key = "baseline" if r["model"].startswith("Baseline") else "best"
+                story[f"cap2_cost_{key}"], story[f"cap2_fail_{key}"] = round(r["mean_cost"], 2), r["failures"]
     (OUT / "model_story.json").write_text(json.dumps(story))
 
 

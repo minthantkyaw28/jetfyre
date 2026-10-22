@@ -106,6 +106,7 @@ def main():
     md += [f"| {r.model} (T={r.T}) | {r.capacity} | {r.policy} | {r.mean_cost:.2f} | {r.failures} | {r.mean_wasted:.2f} |"
            for r in df.itertuples()]
     (OUT / "fleet.md").write_text("\n".join(md) + "\n")
+    (OUT / "fleet.json").write_text(df.to_json(orient="records"))
     print("\n".join(md))
 
 
