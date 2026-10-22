@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+sealed/
+data/*.txt
+best.json
+results.tsv
+optuna_results.tsv
