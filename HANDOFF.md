@@ -27,3 +27,12 @@ Changing `evaluate.py`/`prepare.py` invalidates `results.tsv`. Re-tag `harness-v
 ## Next steps / open ideas
 - Deployment demo: `predict_fleet.py` (CSV of latest snapshots → RUL + PULL/OK per engine).
 - Pitch numbers: see `knowledge/pitch.md`, `knowledge/judging.md`.
+
+## Web UI (JetFyre dashboard) — live at https://jetfyre.vercel.app
+- Source: `web/` (Vite + React 19 + react-three-fiber + Tailwind v4). Vercel project `jetfyre` (linked in `web/.vercel`, gitignored; `web/.env.local` holds a Vercel OIDC token and is gitignored).
+- Left: procedural 3D fleet (A380, 747-8, 777-300ER, A350, A320neo) with per-engine status labels; click an engine → camera flight + spotlight + dossier. Self-running tour (`store.ts: startTourDriver`): plane intro → zoom on its most severe engine → zoom out → next plane; pauses on interaction, resumes after 30 s.
+- Right: autoresearch cluster (5-stage loop, agents, fold bars, verdict, cost curve) + Managed-Agents-style observability (sessions, event trace). The GE90-class (777) family replays the REAL run from `results.tsv`; the other four families are labelled SIMULATED.
+- Refresh real data + deploy: `cd web && node scripts/export-run.mjs && npx vite build && npx -y vercel@latest deploy --prod --yes` (global vercel CLI 33 is too old; use npx).
+- Design decision (user): navy chrome + deep-blue studio + white jets, compact engine labels.
+- `predict_fleet.py` (deployment shim, not yet run): fleet snapshot file → `reports/pull_list.csv` with PULL / WATCH / OK per engine.
+- Pitch deck: `When to Pull an Engine.pdf`; transcript + slide-8 number map in `knowledge/deck.md`.

@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-bg: #eef1f6;
+  --color-panel: #ffffff;
+  --color-panel2: #f5f7fb;
+  --color-line: #e1e6ef;
+  --color-line2: #cdd6e3;
+  --color-ink: #0b1530;
+  --color-muted: #4a5878;
+  --color-dim: #7d8aa3;
+  --color-fyre: #2563eb;
+  --color-fyre2: #0ea5e9;
+  --color-magenta: #a855f7;
+  --color-violet: #6366f1;
+  --color-cyan: #0891b2;
+  --color-sky: #0ea5e9;
+  --color-lime: #0d9488;
+  --color-ok: #059669;
+  --color-watch: #d97706;
+  --color-pull: #e11d48;
+}
+
+html, body, #root { height: 100%; }
+body { margin: 0; background: radial-gradient(1100px 600px at 0% -10%, #dbeafe, transparent 60%), radial-gradient(900px 600px at 100% 0%, #e0e7ff, transparent 55%), var(--color-bg); color: var(--color-ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+* { scrollbar-width: thin; scrollbar-color: #cdd6e3 transparent; }
+::selection { background: #2563eb33; }
+
+@keyframes pulse-dot { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+.pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+@keyframes shimmer { from { background-position: -200% 0 } to { background-position: 200% 0 } }
+.shimmer { background: linear-gradient(90deg, transparent, #ffffff14, transparent); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; }
+
+/* vibrant blue gradient utilities (light theme) */
+.text-gradient { background: linear-gradient(90deg, #06b6d4 0%, #2563eb 45%, #6366f1 75%, #a855f7 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.text-gradient-cool { background: linear-gradient(90deg, #06b6d4, #0ea5e9 45%, #2563eb); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.bg-gradient-fyre { background: linear-gradient(120deg, #06b6d4, #2563eb 45%, #6366f1 75%, #a855f7); }
+.bg-gradient-cool { background: linear-gradient(120deg, #67e8f9, #0ea5e9 40%, #2563eb); }
+.glass { background: color-mix(in srgb, var(--color-panel) 92%, transparent); backdrop-filter: blur(10px); }
+.border-gradient { border: 1px solid transparent; background: linear-gradient(var(--color-panel), var(--color-panel)) padding-box, linear-gradient(120deg, #06b6d4, #2563eb, #6366f1, #a855f7) border-box; }
+.glow-fyre { box-shadow: 0 1px 2px #0b153014, 0 8px 24px #2563eb26; }
+.glow-cool { box-shadow: 0 1px 2px #0b153014, 0 8px 24px #06b6d426; }
+.card { background: var(--color-panel); border: 1px solid var(--color-line); border-radius: 14px; box-shadow: 0 1px 2px #0b15300d, 0 4px 16px #0b15300a; }
+@keyframes hue { from { filter: hue-rotate(0deg) } to { filter: hue-rotate(360deg) } }
+.hue-cycle { animation: hue 12s linear infinite; }
+
+/* Elegant navy chrome for the header + right-hand panels (the 3D stage stays dimmed white). */
+.theme-navy {
+  --color-bg: #0a1226;
+  --color-panel: #0f1a35;
+  --color-panel2: #13213f;
+  --color-line: #1f2e55;
+  --color-line2: #2b3e6c;
+  --color-ink: #e9effc;
+  --color-muted: #a7b5d8;
+  --color-dim: #7384ad;
+  --color-fyre: #4f8dff;
+  --color-fyre2: #5fd8ff;
+  --color-cyan: #3fd2f2;
+  --color-sky: #55bdff;
+  --color-violet: #8f97ff;
+  --color-magenta: #c294ff;
+  --color-lime: #34dcc0;
+  --color-ok: #34d399;
+  --color-watch: #fbbf24;
+  --color-pull: #fb7185;
+  color: var(--color-ink);
+  background:
+    radial-gradient(900px 500px at 100% 0%, #1d3a8a40, transparent 60%),
+    radial-gradient(700px 500px at 0% 100%, #0e74901f, transparent 60%),
+    linear-gradient(180deg, #0b1430, #0a1226);
+}
+.theme-navy .card { box-shadow: 0 1px 0 #ffffff08 inset, 0 8px 24px #02061740; }
+.theme-navy .glow-fyre { box-shadow: 0 0 0 1px #4f8dff55, 0 8px 28px #4f8dff2e; }
+.theme-navy .glow-cool { box-shadow: 0 0 0 1px #3fd2f255, 0 8px 28px #3fd2f22a; }
+.theme-navy .text-gradient { background: linear-gradient(90deg, #67e8f9 0%, #60a5fa 40%, #818cf8 72%, #c4b5fd 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
