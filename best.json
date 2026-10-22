@@ -1,14 +1,14 @@
 {
- "turn": 3,
- "hypothesis": "lower pull threshold T 20->12: T=20 had 0 fails and waste ~T+3 (folds 4-5 ~= T exactly), so late-life predictions track true RUL closely; a lower T should cut waste ~8 cycles without any engine running to failure",
+ "turn": 4,
+ "hypothesis": "causal 10-cycle rolling means of the 14 informative sensors as extra features: with 0 fails, waste ~T+3 comes from noisy per-cycle predictions dipping below T early; smoothed sensor inputs should steady late-life predictions and cut the overshoot",
  "status": "ok",
  "T": 12.0,
  "fold_costs": [
-  15.85,
-  15.35,
-  17.55,
-  13.15,
-  12.85
+  13.0,
+  11.05,
+  13.25,
+  9.35,
+  8.75
  ],
  "fold_fails": [
   0,
@@ -18,40 +18,40 @@
   0
  ],
  "fold_waste": [
-  15.85,
-  15.35,
-  17.55,
-  13.15,
-  12.85
+  13.0,
+  11.05,
+  13.25,
+  9.35,
+  8.75
  ],
  "cost_by_cfail": {
   "250": [
-   15.85,
-   15.35,
-   17.55,
-   13.15,
-   12.85
+   13.0,
+   11.05,
+   13.25,
+   9.35,
+   8.75
   ],
   "500": [
-   15.85,
-   15.35,
-   17.55,
-   13.15,
-   12.85
+   13.0,
+   11.05,
+   13.25,
+   9.35,
+   8.75
   ],
   "1000": [
-   15.85,
-   15.35,
-   17.55,
-   13.15,
-   12.85
+   13.0,
+   11.05,
+   13.25,
+   9.35,
+   8.75
   ]
  },
- "mean_cost": 14.95,
+ "mean_cost": 11.08,
  "fails": 0,
- "waste": 14.95,
- "rmse125": 33.459,
- "nasa100": 59901.4,
+ "waste": 11.08,
+ "rmse125": 32.932,
+ "nasa100": 27145.9,
  "leak_ok": true,
- "secs": 3.42
+ "secs": 3.96
 }

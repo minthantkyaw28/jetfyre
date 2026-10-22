@@ -15,10 +15,12 @@ T = 12.0  # pull threshold, in cycles of predicted remaining life
 
 SETTINGS = ["os1", "os2", "os3"]
 SENSORS = [f"s{i}" for i in range(1, 22)]
+INFORMATIVE = ["s2", "s3", "s4", "s7", "s8", "s9", "s11", "s12", "s13", "s14", "s15", "s17", "s20", "s21"]
 
 
 def features(track: pd.DataFrame) -> pd.DataFrame:
-    return track[SETTINGS + SENSORS]
+    roll = track[INFORMATIVE].rolling(10, min_periods=1).mean().add_suffix("_r10")  # causal
+    return pd.concat([track[SETTINGS + SENSORS], roll], axis=1)
 
 
 def target(track: pd.DataFrame) -> np.ndarray:

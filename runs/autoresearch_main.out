@@ -1,2 +1,4 @@
 autoresearch: 45 min, max 45 turns, cap 240s/turn
 === turn 1 (results rows: 4) 18:07:26 → runs/agent_turn_0004.log
+  last: 3	lower pull threshold T 20->12: T=20 had 0 fails and waste ~T+3 (folds 4-5 ~= T exactly), so late-life predictions track true RUL closely; a lower T should cut waste ~8 cycles without any engine running to failure	keep	14.95
+=== turn 2 (results rows: 5) 18:08:25 → runs/agent_turn_0005.log
