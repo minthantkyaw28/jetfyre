@@ -1,0 +1,13 @@
+diff --git a/model.py b/model.py
+index fa13fdc..becd203 100644
+--- a/model.py
++++ b/model.py
+@@ -37,4 +37,7 @@ class Model:
+         return self
+ 
+     def predict(self, track):
+-        return self.m.predict(features(track))
++        raw = self.m.predict(features(track))
++        t = np.arange(len(raw))
++        fail = pd.Series(raw + t).rolling(5, min_periods=1).mean().to_numpy()  # causal mean of implied failure cycle
++        return fail - t  # de-noised RUL without the lag of smoothing a series that falls 1/cycle
