@@ -1,14 +1,14 @@
 {
- "turn": 2,
- "hypothesis": "lower pull threshold T 30->20: baseline has 0 fails and waste only 2.84 above T, so waste is mostly the threshold itself; late-life predictions should still cross 20 before failure",
+ "turn": 3,
+ "hypothesis": "lower pull threshold T 20->12: T=20 had 0 fails and waste ~T+3 (folds 4-5 ~= T exactly), so late-life predictions track true RUL closely; a lower T should cut waste ~8 cycles without any engine running to failure",
  "status": "ok",
- "T": 20.0,
+ "T": 12.0,
  "fold_costs": [
-  23.4,
-  25.1,
-  25.95,
-  20.0,
-  20.3
+  15.85,
+  15.35,
+  17.55,
+  13.15,
+  12.85
  ],
  "fold_fails": [
   0,
@@ -18,40 +18,40 @@
   0
  ],
  "fold_waste": [
-  23.4,
-  25.1,
-  25.95,
-  20.0,
-  20.3
+  15.85,
+  15.35,
+  17.55,
+  13.15,
+  12.85
  ],
  "cost_by_cfail": {
   "250": [
-   23.4,
-   25.1,
-   25.95,
-   20.0,
-   20.3
+   15.85,
+   15.35,
+   17.55,
+   13.15,
+   12.85
   ],
   "500": [
-   23.4,
-   25.1,
-   25.95,
-   20.0,
-   20.3
+   15.85,
+   15.35,
+   17.55,
+   13.15,
+   12.85
   ],
   "1000": [
-   23.4,
-   25.1,
-   25.95,
-   20.0,
-   20.3
+   15.85,
+   15.35,
+   17.55,
+   13.15,
+   12.85
   ]
  },
- "mean_cost": 22.95,
+ "mean_cost": 14.95,
  "fails": 0,
- "waste": 22.95,
+ "waste": 14.95,
  "rmse125": 33.459,
  "nasa100": 59901.4,
  "leak_ok": true,
- "secs": 3.31
+ "secs": 3.42
 }

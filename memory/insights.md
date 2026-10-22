@@ -10,3 +10,4 @@ Format:
 
 ## Log
 
+- T0002 | lower pull threshold T 30→20 → keep (mean 22.95 vs 32.84, wins 5/5, fails 0) | with 0 fails the threshold sets the waste (still ≈T+3); the late-life model is tight enough for T=20, so keep lowering T, and add asymmetric loss or smoothing first if fails show up
