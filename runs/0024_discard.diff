@@ -1,0 +1,23 @@
+diff --git a/model.py b/model.py
+index fa13fdc..08f1573 100644
+--- a/model.py
++++ b/model.py
+@@ -16,6 +16,10 @@ T = 8.5  # pull threshold, in cycles of predicted remaining life
+ SETTINGS = ["os1", "os2", "os3"]
+ SENSORS = [f"s{i}" for i in range(1, 22)]
+ INFORMATIVE = ["s2", "s3", "s4", "s7", "s8", "s9", "s11", "s12", "s13", "s14", "s15", "s17", "s20", "s21"]
++# RUL direction per feature: -1 sensor rises with wear, +1 falls with wear, 0 free (settings, s9/s14 vary by unit)
++WEAR_SIGN = {"s2": -1, "s3": -1, "s4": -1, "s7": 1, "s8": -1, "s9": 0, "s11": -1, "s12": 1,
++             "s13": -1, "s14": 0, "s15": -1, "s17": -1, "s20": 1, "s21": 1}
++MONOTONE = [0] * len(SETTINGS) + [WEAR_SIGN[s] for s in INFORMATIVE]
+ 
+ 
+ def features(track: pd.DataFrame) -> pd.DataFrame:
+@@ -32,6 +36,7 @@ class Model:
+         X = pd.concat([features(t) for t in tracks], ignore_index=True)
+         y = np.concatenate([target(t) for t in tracks])
+         self.m = lgb.LGBMRegressor(n_estimators=200, learning_rate=0.05, num_leaves=31,
++                                   monotone_constraints=MONOTONE, monotone_constraints_method="intermediate",
+                                    random_state=0, n_jobs=4, verbose=-1)
+         self.m.fit(X, y, sample_weight=1.0 / (y + 10.0))  # conservative where late life is ambiguous
+         return self
