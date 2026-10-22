@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>When to pull an engine</title>
+<meta name="description" content="An AI agent searches for the rule that decides when to take a jet engine off the wing, scored by replaying held-out NASA C-MAPSS engines and pricing every pull.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #eceff3; --paper-2: #e1e6ec; --ink: #1c2a39; --ink-2: #34465a; --muted: #55687c; --rule: #bcc6d1;
+  --caution: #e8a317; --caution-ink: #8a5a00; --warning: #c8102e; --warning-ink: #a50d26; --advisory: #006e86;
+  --band: #0f1c28; --band-ink: #e4eaf0; --band-muted: #a7b6c4; --band-rule: #2d4050;
+  --band-caution: #ffbf3c; --band-warning: #ff6b6b; --band-advisory: #4fd3e6;
+  --head: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "Source Serif 4", Georgia, serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #172230; --paper-2: #1f2c3b; --ink: #dfe6ed; --ink-2: #c3cfda; --muted: #9aabbb; --rule: #2f3e4c;
+    --caution: #f0b030; --caution-ink: #ffc455; --warning: #e0303f; --warning-ink: #ff7a7a; --advisory: #52c8dc;
+    --band: #070d13; --band-rule: #2a3d4f;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 19px/1.65 var(--body); }
+a { color: var(--advisory); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--advisory); outline-offset: 3px; }
+.band :focus-visible { outline-color: var(--band-advisory); }
+h1, h2, h3, .label, .num, th, .step-n, figcaption b { font-family: var(--head); }
+h1, h2, h3 { font-weight: 600; line-height: 1.05; letter-spacing: 0.005em; }
+h2 { font-size: clamp(34px, 5vw, 46px); margin: 0 0 0.5em; }
+h3 { font-size: 26px; margin: 0 0 0.35em; }
+p, ul, ol, .prose { max-width: 66ch; }
+p { margin: 0 0 1em; }
+sup { line-height: 0; font-size: 0.7em; }
+sup a { text-decoration: none; padding: 0 1px; }
+code, pre { font-family: var(--mono); font-size: 15px; }
+p code, li code, td code { font-size: 0.85em; background: var(--paper-2); padding: 1px 5px; border-radius: 3px; }
+.wrap { width: min(1040px, 100% - 32px); margin-left: clamp(16px, 7vw, 112px); }
+section { border-top: 1px solid var(--rule); padding: 56px 0 48px; }
+.num { font-weight: 600; font-variant-numeric: tabular-nums; }
+.num:not(.filled) { color: var(--muted); }
+
+/* Hero */
+.band { background: var(--band); color: var(--band-ink); }
+.band a { color: var(--band-advisory); }
+.band code { background: #1f3344; color: var(--band-ink); }
+.hero { padding: 72px 0 64px; }
+.hero h1 { font-size: clamp(52px, 10vw, 112px); margin: 0 0 18px; font-weight: 700; }
+.hero .lede { font-size: 22px; color: var(--band-muted); max-width: 46ch; margin-bottom: 28px; }
+.hero .links { font-family: var(--head); font-size: 22px; display: flex; gap: 28px; flex-wrap: wrap; margin: 0 0 52px; }
+.life { max-width: 880px; }
+.life-ends { display: flex; justify-content: space-between; font-family: var(--head); font-size: 18px; color: var(--band-muted); margin-bottom: 8px; }
+.life-bar { position: relative; height: 34px; border: 1px solid var(--band-rule); border-radius: 3px;
+  background: repeating-linear-gradient(90deg, var(--band-rule) 0 1px, transparent 1px 10%) , #132433; }
+.life-bar::before { content: ""; position: absolute; inset: 0 0 50% 0;
+  background: repeating-linear-gradient(90deg, #3b5163 0 1px, transparent 1px 2%); }
+.life-fail { position: absolute; right: 0; top: 0; bottom: 0; width: 9%; background: var(--band-warning); border-radius: 0 2px 2px 0; }
+.life-marker { position: absolute; top: -40px; bottom: -8px; left: 84%; width: 0; animation: slide 1.8s cubic-bezier(.2,.7,.2,1) 0.3s both; }
+.life-marker::before { content: ""; position: absolute; left: -2px; top: 30px; bottom: 0; width: 4px; background: var(--band-caution); border-radius: 2px; }
+.life-marker span { position: absolute; right: 8px; top: 0; white-space: nowrap; font-family: var(--head); font-weight: 600; font-size: 20px; color: var(--band-caution); }
+@keyframes slide { from { left: 3%; } to { left: 84%; } }
+.life-says { display: flex; justify-content: space-between; gap: 24px; margin-top: 14px; font-family: var(--head); font-size: 19px; }
+.life-says span:last-child { text-align: right; }
+.say-early { color: var(--band-caution); }
+.say-late { color: var(--band-warning); }
+
+/* Two columns */
+.two { display: grid; gap: 28px; max-width: 980px; }
+.two > div + div { border-top: 1px solid var(--rule); padding-top: 24px; }
+@media (min-width: 760px) {
+  .two { grid-template-columns: 1fr 1fr; gap: 0; }
+  .two > div { padding-right: 36px; }
+  .two > div + div { border-top: 0; padding-top: 0; border-left: 1px solid var(--rule); padding-left: 36px; padding-right: 0; }
+}
+.early h3 { color: var(--caution-ink); }
+.late h3 { color: var(--warning-ink); }
+
+/* Pipeline */
+ol.pipeline { list-style: none; padding: 0; margin: 28px 0 32px; max-width: none; display: grid; counter-reset: step; }
+ol.pipeline li { counter-increment: step; position: relative; padding: 0 0 22px 52px; border-left: 2px solid var(--rule); margin-left: 15px; }
+ol.pipeline li:last-child { border-left-color: transparent; }
+ol.pipeline li::before { content: counter(step); position: absolute; left: -16px; top: -2px; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--paper); border: 2px solid var(--ink); font: 600 18px/26px var(--head); text-align: center; }
+@media (min-width: 900px) {
+  ol.pipeline { grid-template-columns: repeat(6, 1fr); }
+  ol.pipeline li { border-left: 0; border-top: 2px solid var(--rule); margin: 15px 0 0; padding: 26px 18px 0 0; font-size: 17px; line-height: 1.5; }
+  ol.pipeline li:last-child { border-top-color: var(--rule); }
+  ol.pipeline li::before { left: 0; top: -17px; }
+}
+.sealed { border: 2px dashed var(--caution); padding: 16px 20px; max-width: 66ch; }
+.sealed p { margin: 0; }
+
+/* Code and tables */
+pre { background: var(--paper-2); border-left: 3px solid var(--rule); padding: 16px 18px; overflow-x: auto; max-width: 760px; line-height: 1.55; margin: 0 0 28px; }
+.table-wrap { overflow-x: auto; max-width: 980px; margin: 0 0 28px; }
+table { border-collapse: collapse; width: 100%; font-size: 17px; line-height: 1.45; }
+th { text-align: left; font-weight: 600; font-size: 18px; border-bottom: 2px solid var(--ink); padding: 8px 14px 8px 0; vertical-align: bottom; }
+td { border-bottom: 1px solid var(--rule); padding: 10px 14px 10px 0; vertical-align: top; }
+td.n, th.n { text-align: right; font-family: var(--head); font-size: 20px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.note { color: var(--muted); font-size: 16px; }
+
+/* Console */
+.console { padding: 64px 0; }
+.console h2 { color: var(--band-ink); }
+.console p { color: var(--band-muted); }
+.controls { display: grid; gap: 26px; margin: 32px 0; max-width: 980px; }
+@media (min-width: 860px) { .controls { grid-template-columns: auto 1fr auto; align-items: end; } }
+.label { display: block; font-size: 19px; font-weight: 500; color: var(--band-muted); margin-bottom: 8px; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.seg { display: flex; flex-wrap: wrap; border: 1px solid var(--band-rule); border-radius: 4px; width: fit-content; }
+.seg label { position: relative; }
+.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg span { display: block; padding: 8px 14px; font: 600 19px/1.2 var(--head); color: var(--band-ink); border-right: 1px solid var(--band-rule); cursor: pointer; }
+.seg label:last-child span { border-right: 0; }
+.seg input:checked + span { background: var(--band-advisory); color: #062029; }
+.seg input:focus-visible + span { outline: 3px solid var(--band-advisory); outline-offset: 2px; }
+.seg input:disabled + span { color: #6c7e8e; cursor: not-allowed; text-decoration: line-through; }
+.slider output { font: 600 22px var(--head); color: var(--band-ink); }
+input[type=range] { width: 100%; accent-color: var(--band-advisory); height: 28px; }
+select, button { font: 600 19px var(--head); color: var(--band-ink); background: var(--band); border: 1px solid var(--band-advisory); border-radius: 4px; padding: 8px 12px; }
+button { background: var(--band-advisory); color: #062029; cursor: pointer; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.readouts { display: grid; grid-template-columns: repeat(3, 1fr); max-width: 980px; border-top: 1px solid var(--band-rule); border-bottom: 1px solid var(--band-rule); }
+.readouts div { padding: 16px 14px 16px 0; display: flex; flex-direction: column; justify-content: space-between; }
+.readouts div + div { border-left: 1px solid var(--band-rule); padding-left: 14px; }
+.readouts .num { display: block; font-size: clamp(34px, 7vw, 56px); line-height: 1; margin-top: 6px; color: var(--band-ink); }
+.readouts .r-fail { color: var(--band-warning); }
+.readouts .r-waste { color: var(--band-caution); }
+.readouts .label { margin: 0; font-size: 17px; }
+#strip { display: block; width: 100%; max-width: 980px; height: 220px; margin-top: 24px; }
+.legend { font-family: var(--head); font-size: 18px; color: var(--band-muted); display: flex; flex-wrap: wrap; gap: 6px 26px; margin-top: 10px; max-width: 980px; }
+.key { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.empty { border: 2px dashed var(--band-rule); padding: 20px 22px; max-width: 72ch; color: var(--band-ink); }
+.empty p { color: var(--band-ink); margin: 0 0 0.5em; }
+.empty p:last-child { margin: 0; }
+
+/* Results */
+.plate { border: 2px solid var(--ink); display: grid; max-width: 980px; margin: 8px 0 32px; }
+.plate > div { padding: 20px 22px; }
+.plate > div + div { border-top: 1px solid var(--ink); }
+@media (min-width: 760px) { .plate { grid-template-columns: auto 1fr; align-items: center; } .plate > div + div { border-top: 0; border-left: 1px solid var(--ink); } }
+.plate .big { font: 700 clamp(72px, 14vw, 128px)/0.9 var(--head); font-variant-numeric: tabular-nums; }
+.plate p { margin: 0; }
+figure { margin: 0 0 36px; max-width: 980px; }
+figure img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); background: #fcfcfb; }
+figure.half { max-width: 760px; }
+figcaption { font-size: 16px; line-height: 1.5; color: var(--ink-2); margin-top: 10px; max-width: 70ch; }
+figcaption b { font-size: 18px; font-weight: 600; color: var(--ink); }
+.slot { border: 2px dashed var(--rule); min-height: 180px; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; color: var(--muted); font-family: var(--head); font-size: 20px; }
+.slot.wide { min-height: 260px; }
+
+ol.sources { padding-left: 1.4em; font-size: 17px; max-width: 76ch; }
+ol.sources li { margin-bottom: 8px; }
+ol.sources li:target { background: var(--paper-2); outline: 2px solid var(--advisory); outline-offset: 4px; }
+footer { border-top: 1px solid var(--rule); padding: 28px 0 48px; color: var(--muted); font-size: 16px; }
+footer p { margin: 0 0 4px; }
+
+@media (max-width: 520px) {
+  body { font-size: 18px; }
+  .life-marker span { font-size: 17px; }
+  .life-says { font-size: 16px; }
+  .readouts .label { font-size: 15px; }
+  table { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .life-marker { animation: none; }
+  * { scroll-behavior: auto !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="band">
+  <div class="wrap hero">
+    <h1>When to pull an engine</h1>
+    <p class="lede">An AI agent rewrites one model file, a fixed referee replays held-out engines, and every pull decision is priced in cycles of engine life.</p>
+    <p class="links"><a id="repo-link" href="https://github.com/minthantkyaw28/jetfyre">Code on GitHub</a><a id="deck-link" href="deck.pdf" hidden>Slides (PDF)</a></p>
+    <div class="life" role="img" aria-label="A life bar from a new engine on the left to failure on the right, with tick marks. A red block marks failure at the right end. An amber marker labelled The right day sits just before it. Pulling to the left of the marker throws life away; pulling to the right of it risks the aircraft on the ground.">
+      <div class="life-ends" aria-hidden="true"><span>New engine</span><span>Failure</span></div>
+      <div class="life-bar" aria-hidden="true">
+        <div class="life-fail"></div>
+        <div class="life-marker"><span>The right day</span></div>
+      </div>
+      <div class="life-says" aria-hidden="true"><span class="say-early">Too early: life thrown away</span><span class="say-late">Too late: aircraft on the ground</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+<section id="bet">
+  <h2>Every pull is a bet on time</h2>
+  <div class="two">
+    <div class="early">
+      <h3>Pull too early</h3>
+      <p>Every cycle left on the wing was already paid for. An engine that comes off with life to spare goes to the shop sooner, and the airline buys again the life it had already bought.</p>
+    </div>
+    <div class="late">
+      <h3>Pull too late</h3>
+      <p>The aircraft stops flying. One industry estimate puts a single day on the ground after an engine event at $50,000 to $150,000, rising past $600,000 beyond three days.<sup><a href="#src-1" aria-label="Source 1">1</a></sup> Boeing has put the cost of a grounded aircraft as high as $150,000 an hour.<sup><a href="#src-2" aria-label="Source 2">2</a></sup></p>
+    </div>
+  </div>
+</section>
+
+<section id="price">
+  <h2>Why the price moves</h2>
+  <p>After the 2022 sanctions, more than 400 leased jets worth almost $10 billion stayed in Russia, cut off from Western parts.<sup><a href="#src-3" aria-label="Source 3">3</a></sup> One independent count found over 800 technical faults that forced cancellations or emergency landings there from January to late November 2025, against just over 200 in the same months of 2024.<sup><a href="#src-4" aria-label="Source 4">4</a></sup> Elsewhere, and for separate reasons, overhaul turnaround for new-generation engines has risen more than 150% in five years, mostly from faults in the new engines and shortages of parts.<sup><a href="#src-5" aria-label="Source 5">5</a></sup> Before the war, Russia supplied about 65% of the titanium in Airbus aircraft.<sup><a href="#src-6" aria-label="Source 6">6</a></sup> None of these figures is the price of an engine cycle, but each one moves it. So the evaluator does not fix that price. It treats the price of engine life as a dial the airline sets.</p>
+</section>
+
+<section id="loop">
+  <h2>How the loop works</h2>
+  <p>The loop follows the autoresearch pattern:<sup><a href="#src-7" aria-label="Source 7">7</a></sup> an agent proposes one change, a fixed referee scores it, and only clear wins survive.</p>
+  <ol class="pipeline">
+    <li>The agent reads <code>results.tsv</code> and writes a one-line hypothesis.</li>
+    <li>It edits <code>model.py</code>, the only file it may touch.</li>
+    <li><code>evaluate.py</code> trains on four folds and replays the fifth, five times over, within 60 seconds.</li>
+    <li>Each pull costs the life thrown away. Each failure costs 500 cycles.</li>
+    <li>The change is committed only if the mean cost falls and it wins four folds of five. Otherwise it is reverted.</li>
+    <li>The result is logged, and the loop starts again.</li>
+  </ol>
+  <div class="sealed"><p>The FD001 test set and all of FD003 are sealed.<sup><a href="#src-8" aria-label="Source 8">8</a></sup> Nothing in the loop reads them. <code>final.py</code> opens them once, after the last turn.</p></div>
+</section>
+
+<section id="score">
+  <h2>The score is the airline’s bill</h2>
+  <p>The referee walks each held-out engine forward one cycle at a time, the way an airline sees it. At the first cycle where the predicted life falls to the threshold T, the engine comes off the wing, and the bill is the life it still had. If that moment never comes, the engine fails, and the bill is the failure cost. The score is the mean bill per engine, so lower is better.</p>
+  <pre><code>def replay_cost(pred, T, c_fail=C_FAIL, c_cycle=C_CYCLE):
+    """Return (cost, failed, wasted cycles) for one track's predictions."""
+    n = len(pred)
+    for i, p in enumerate(pred):
+        life_left = n - (i + 1)
+        if p &lt;= T and life_left &gt; 0:
+            return c_cycle * life_left, False, float(life_left)
+    return c_fail, True, 0.0</code></pre>
+  <p>A score is only worth something if it cannot be gamed. Four guards stand between the agent and an easy number.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Risk</th><th scope="col">Guard</th><th scope="col">How it works</th></tr></thead>
+      <tbody>
+        <tr><td>Memorising an engine</td><td>Split by engine</td><td>Every row of an engine sits in one fold, so the model is never scored on an engine it trained on.</td></tr>
+        <tr><td>Peeking at the future</td><td>The truncation check</td><td>The referee cuts each engine at a random cycle and predicts again. If any earlier prediction changes, the run fails as a future leak.</td></tr>
+        <tr><td>A lucky fold</td><td>The four-in-five rule</td><td>A change is kept only if the mean cost falls and it wins on at least four of the five folds.</td></tr>
+        <tr><td>Learning the benchmark</td><td>The sealed test</td><td>The test sets stay closed until <code>final.py</code> runs once, at the end.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</div>
+
+<section class="band console" id="replay" aria-labelledby="replay-h">
+  <div class="wrap">
+    <h2 id="replay-h">Move the threshold yourself</h2>
+    <p>These are the held-out predictions from all five folds, replayed in your browser with the same rules as <code>evaluate.py</code>.</p>
+    <div id="replay-empty" class="empty">
+      <p>The replay is waiting for its data.</p>
+      <p>It switches on when <code>docs/figures/preds_baseline.csv</code> and <code>docs/figures/preds_best.csv</code> exist. Run <code>python analysis.py</code> to make them in <code>out/</code>, then <code>python publish_site.py</code> to copy them here.</p>
+    </div>
+    <div id="replay-live" hidden>
+      <div class="controls">
+        <fieldset>
+          <legend class="label">Policy</legend>
+          <div class="seg">
+            <label><input type="radio" name="policy" value="fixed"><span>Fixed interval</span></label>
+            <label><input type="radio" name="policy" value="baseline"><span>Baseline model</span></label>
+            <label><input type="radio" name="policy" value="best" checked><span>Best model</span></label>
+          </div>
+        </fieldset>
+        <div class="slider">
+          <label class="label" for="x" id="x-label">Pull when predicted life falls to T</label>
+          <input type="range" id="x" min="0" max="80" step="1" value="30" aria-describedby="x-out">
+          <output id="x-out" for="x">T = 30 cycles</output>
+        </div>
+        <div>
+          <label class="label" for="cfail">Failure cost</label>
+          <select id="cfail">
+            <option value="250">250 cycles: spares scarce</option>
+            <option value="500" selected>500 cycles: the base case</option>
+            <option value="1000">1000 cycles: spares plentiful</option>
+          </select>
+        </div>
+      </div>
+      <p><button type="button" id="cheapest">Find the cheapest setting</button></p>
+      <div class="readouts" aria-live="polite">
+        <div><span class="label">Failures</span><span class="num r-fail" id="r-fail">[__]</span></div>
+        <div><span class="label">Mean cycles wasted per engine</span><span class="num r-waste" id="r-waste">[__]</span></div>
+        <div><span class="label">Mean cost per engine</span><span class="num" id="r-cost">[__]</span></div>
+      </div>
+      <svg id="strip" viewBox="0 0 1000 220" preserveAspectRatio="none" role="img" aria-label="Bar strip of engines, waiting for data."></svg>
+      <p class="legend"><span><span class="key" style="background:var(--band-caution)"></span>Amber bars rise by the cycles left when the engine was pulled</span><span><span class="key" style="background:var(--band-warning)"></span>Red bars below the line are engines that ran to failure</span><span id="strip-scale"></span></p>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+
+<section id="results">
+  <h2>What the hour produced</h2>
+  <div class="plate">
+    <div><span class="big num" data-k="gap_closed" data-fmt="pct">[__]</span></div>
+    <div><p>of the gap between the baseline model and a perfect oracle, closed by the loop. The oracle pulls every engine on its last safe cycle and costs 0.</p></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Policy</th><th scope="col" class="n">Mean cost per engine</th><th scope="col" class="n">Failures</th><th scope="col" class="n">Cycles wasted, all engines</th></tr></thead>
+      <tbody>
+        <tr><td>Fixed interval</td><td class="n"><span class="num" data-k="mean_cost.fixed">[__]</span></td><td class="n"><span class="num" data-k="failures.fixed" data-fmt="int">[__]</span></td><td class="n"><span class="num" data-k="wasted_cycles.fixed" data-fmt="int">[__]</span></td></tr>
+        <tr><td>Baseline model</td><td class="n"><span class="num" data-k="mean_cost.baseline">[__]</span></td><td class="n"><span class="num" data-k="failures.baseline" data-fmt="int">[__]</span></td><td class="n"><span class="num" data-k="wasted_cycles.baseline" data-fmt="int">[__]</span></td></tr>
+        <tr><td>Best model</td><td class="n"><span class="num" data-k="mean_cost.best">[__]</span></td><td class="n"><span class="num" data-k="failures.best" data-fmt="int">[__]</span></td><td class="n"><span class="num" data-k="wasted_cycles.best" data-fmt="int">[__]</span></td></tr>
+        <tr><td>Optuna</td><td class="n"><span class="num" data-k="mean_cost.optuna">[__]</span></td><td class="n note">not logged</td><td class="n note">not logged</td></tr>
+        <tr><td>Oracle</td><td class="n"><span class="num" data-k="mean_cost.oracle">[__]</span></td><td class="n">0</td><td class="n">0</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The loop kept <span class="num" data-k="turns.kept" data-fmt="int">[__]</span> changes out of <span class="num" data-k="turns.total" data-fmt="int">[__]</span> turns.</p>
+
+  <figure data-fig="ratchet.png" data-alt="Line chart of mean cost per engine by turn. Grey dots mark every change the agent tried; a blue step line marks the best kept cost and only falls.">
+    <div class="slot wide">Waiting for figures/ratchet.png</div>
+    <figcaption><b>The ratchet.</b> Every change the agent tried, and the best kept cost, which can only fall.</figcaption>
+  </figure>
+  <figure class="half" data-fig="engine_story.png" data-alt="One held-out engine from new to failure, showing its true life left, the baseline and best predictions, and the cycle each model pulls it.">
+    <div class="slot">Waiting for figures/engine_story.png</div>
+    <figcaption><b>One engine, start to finish.</b> True life left, the two models’ predictions, and the cycle each one pulls it.</figcaption>
+  </figure>
+  <figure class="half" data-fig="fleet_strip.png" data-alt="One bar per held-out engine showing the cycles of life left when the best model pulled it.">
+    <div class="slot">Waiting for figures/fleet_strip.png</div>
+    <figcaption><b>The fleet.</b> Cycles left at the pull for every held-out engine under the best model.</figcaption>
+  </figure>
+  <figure class="half" data-fig="frontier.png" data-alt="Mean cost per engine against the threshold T for the baseline and best models.">
+    <div class="slot">Waiting for figures/frontier.png</div>
+    <figcaption><b>The frontier.</b> Mean cost against the threshold T, for the baseline and best models.</figcaption>
+  </figure>
+  <figure class="half" data-fig="players.png" data-alt="Best mean cost so far against evaluation number for the greedy agent, Optuna and the third player, each line labelled.">
+    <div class="slot">Waiting for figures/players.png</div>
+    <figcaption><b>Three players.</b> Best cost so far against evaluation number, on the same referee.</figcaption>
+  </figure>
+  <figure class="half" data-fig="scarcity.png" data-alt="How the cheapest threshold and its cost change when a failure costs 250, 500 or 1000 cycles.">
+    <div class="slot">Waiting for figures/scarcity.png</div>
+    <figcaption><b>Scarcity.</b> How the cheapest setting moves when a failure costs 250, 500 or 1000 cycles.</figcaption>
+  </figure>
+  <figure class="half" data-fig="sealed_test.png" data-alt="Predicted against true life left at the last recorded cycle of each sealed test engine, for FD001 and FD003.">
+    <div class="slot">Waiting for figures/sealed_test.png</div>
+    <figcaption><b>The sealed test.</b> Predicted against true life at the last recorded cycle of each test engine.</figcaption>
+  </figure>
+
+  <h3>Changes the loop kept</h3>
+  <div id="kept" class="table-wrap"><div class="slot">Waiting for figures/kept_changes.md</div></div>
+</section>
+
+<section id="published">
+  <h2>Against published work</h2>
+  <p>On the sealed test sets the usual measures are RMSE and the NASA score, both taken at each engine’s last recorded cycle. Lower is better for both, and the NASA score punishes late predictions harder than early ones.<sup><a href="#src-9" aria-label="Source 9">9</a></sup> Published results cap the target life at 125 or 130 cycles, so the comparison is approximate. Our FD003 numbers come from a model trained only on FD001, while published FD003 results train on FD003.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Subset and measure</th><th scope="col" class="n">Our baseline</th><th scope="col" class="n">Our best</th><th scope="col" class="n">Strong deep models</th><th scope="col" class="n">Plain LSTM</th></tr></thead>
+      <tbody>
+        <tr><td>FD001 RMSE</td><td class="n"><span class="num" data-k="sealed.fd001_rmse.baseline" data-fmt="rmse">[__]</span></td><td class="n"><span class="num" data-k="sealed.fd001_rmse.best" data-fmt="rmse">[__]</span></td><td class="n">about 11.4 to 11.8</td><td class="n">16.5</td></tr>
+        <tr><td>FD001 NASA score</td><td class="n"><span class="num" data-k="sealed.fd001_score.baseline" data-fmt="score">[__]</span></td><td class="n"><span class="num" data-k="sealed.fd001_score.best" data-fmt="score">[__]</span></td><td class="n">about 196 to 229</td><td class="n">444</td></tr>
+        <tr><td>FD003 RMSE</td><td class="n"><span class="num" data-k="sealed.fd003_rmse.baseline" data-fmt="rmse">[__]</span></td><td class="n"><span class="num" data-k="sealed.fd003_rmse.best" data-fmt="rmse">[__]</span></td><td class="n">about 11.6</td><td class="n">15.9</td></tr>
+        <tr><td>FD003 NASA score</td><td class="n"><span class="num" data-k="sealed.fd003_score.baseline" data-fmt="score">[__]</span></td><td class="n"><span class="num" data-k="sealed.fd003_score.best" data-fmt="score">[__]</span></td><td class="n">about 242 to 257</td><td class="n">718</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="players">
+  <h2>Three players, one referee</h2>
+  <p>Each player searches against the same <code>evaluate.py</code>, the same folds and the same cost. What differs is what each one is allowed to change.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Player</th><th scope="col">What it can change</th><th scope="col">Weak spot</th><th scope="col" class="n">Best cost</th></tr></thead>
+      <tbody>
+        <tr><td>Greedy agent</td><td>Anything in <code>model.py</code>: features, target, learner, loss and T</td><td>One idea per turn, and it keeps only clear wins, so it can stall at a cliff edge</td><td class="n"><span class="num" data-k="mean_cost.best">[__]</span></td></tr>
+        <tr><td>Optuna</td><td>Five numbers on raw features: learning rate, depth, iterations, life cap and T</td><td>It cannot invent a feature or change the loss</td><td class="n"><span class="num" data-k="mean_cost.optuna">[__]</span></td></tr>
+        <tr><td><span class="num" data-k="third_player.name" data-fmt="text">[__]</span></td><td id="third-can">Whole-program rewrites by a language model, kept in an evolving population<sup><a href="#src-10" aria-label="Source 10">10</a></sup></td><td id="third-weak">Many rewrites fail to run, and the search is only as good as the model behind it</td><td class="n"><span class="num" data-k="third_player.mean_cost">[__]</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="run">
+  <h2>Run it yourself</h2>
+  <p>Download the NASA C-MAPSS files first.<sup><a href="#src-8" aria-label="Source 8">8</a></sup> <code>train_FD001.txt</code> goes in <code>data/</code>; the FD001 test and RUL files and all of FD003 go in <code>sealed/</code>. Then run these in order from the repository root.</p>
+  <pre><code>pip install numpy pandas scikit-learn optuna matplotlib
+python prepare.py
+python loop.py "baseline"
+claude "Read program.md and follow it."
+python optuna_control.py
+python analysis.py
+python make_figures.py
+python final.py --baseline out/model_baseline.py --best model.py
+python publish_site.py</code></pre>
+</section>
+
+<section id="sources">
+  <h2>Sources</h2>
+  <ol class="sources">
+    <li id="src-1">Air Cargo Week, <a href="https://aircargoweek.com/the-real-cost-of-aog/">The real cost of AOG</a>.</li>
+    <li id="src-2">Wikipedia, <a href="https://en.wikipedia.org/wiki/Aircraft_on_ground">Aircraft on ground</a>.</li>
+    <li id="src-3">The Business Standard, <a href="https://www.tbsnews.net/world/global-economy/worlds-largest-aircraft-owner-lost-113-planes-russia-421838">World’s largest aircraft owner lost 113 planes to Russia</a>, May 2022.</li>
+    <li id="src-4">The Moscow Times, <a href="https://www.themoscowtimes.com/2026/08/04/incidents-involving-russian-airliners-quadruple-in-2025">Incidents involving Russian airliners quadruple in 2025</a>.</li>
+    <li id="src-5">Air Cargo Week, <a href="https://aircargoweek.com/what-defined-engine-market-in-2025/">What defined engine market in 2025?</a></li>
+    <li id="src-6">Frost &amp; Sullivan, <a href="https://www.frost.com/frost-perspectives/impact-of-the-russia-ukraine-crisis-on-aviation-supply-chains/">Impact of the Russia-Ukraine crisis on aviation supply chains</a>.</li>
+    <li id="src-7">Andrej Karpathy, <a href="https://github.com/karpathy/autoresearch">autoresearch</a>, GitHub.</li>
+    <li id="src-8">NASA, Turbofan Engine Degradation Simulation (C-MAPSS), <a href="https://phm-datasets.s3.amazonaws.com/NASA/6.+Turbofan+Engine+Degradation+Simulation+Data+Set.zip">PHM Society mirror</a>.</li>
+    <li id="src-9"><a href="https://arxiv.org/abs/2104.05049">arXiv 2104.05049</a>, published results on C-MAPSS FD001 and FD003.</li>
+    <li id="src-10"><a href="https://github.com/algorithmicsuperintelligence/openevolve">OpenEvolve</a>, GitHub.</li>
+  </ol>
+</section>
+
+<footer>
+  <p>Built at the Moonfire Ventures Hack by [Team name].</p>
+  <p>The data is a NASA simulation, not flight data from any airline.</p>
+</footer>
+
+</div>
+</main>
+
+<script>
+// REPLAY-START: the same rules as evaluate.py and baselines.py. Tested against them in Python.
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const head = lines[0].split(",");
+  const ix = Object.fromEntries(head.map((h, i) => [h.trim(), i]));
+  const byUnit = new Map();
+  for (let j = 1; j < lines.length; j++) {
+    const c = lines[j].split(",");
+    const u = Number(c[ix.unit]);
+    if (!byUnit.has(u)) byUnit.set(u, { unit: u, fold: Number(c[ix.fold]), rows: [] });
+    byUnit.get(u).rows.push([Number(c[ix.cycle]), Number(c[ix.life_left]), Number(c[ix.pred])]);
+  }
+  const engines = [...byUnit.values()];
+  for (const e of engines) e.rows.sort((a, b) => a[0] - b[0]);
+  return engines;
+}
+// Model: pull at the first row where pred <= T and life_left > 0; the cost is that life left.
+function replayModel(e, T, cFail) {
+  for (const [, left, pred] of e.rows) {
+    if (pred <= T && left > 0) return { cost: left, failed: false, wasted: left };
+  }
+  return { cost: cFail, failed: true, wasted: 0 };
+}
+// Fixed interval: pull at cycle N if N is less than the engine's life, wasting life - N.
+function replayFixed(e, N, cFail) {
+  const life = e.rows.length;
+  return life > N ? { cost: life - N, failed: false, wasted: life - N } : { cost: cFail, failed: true, wasted: 0 };
+}
+function summarize(engines, policy, x, cFail) {
+  const f = policy === "fixed" ? replayFixed : replayModel;
+  const per = engines.map(e => Object.assign({ unit: e.unit }, f(e, x, cFail)));
+  const n = per.length;
+  return {
+    per,
+    failures: per.filter(r => r.failed).length,
+    wasted: per.reduce((s, r) => s + r.wasted, 0) / n,
+    cost: per.reduce((s, r) => s + r.cost, 0) / n,
+  };
+}
+// REPLAY-END
+if (typeof module !== "undefined") module.exports = { parseCSV, replayModel, replayFixed, summarize };
+
+if (typeof document !== "undefined") (async function () {
+  const FIG = "figures/";
+  const get = (o, path) => path.split(".").reduce((a, k) => (a == null ? null : a[k]), o);
+  const FMT = {
+    cost: v => v.toFixed(2), int: v => Math.round(v).toLocaleString("en-US"), pct: v => Math.round(v * 100) + "%",
+    rmse: v => v.toFixed(1), score: v => Math.round(v).toLocaleString("en-US"), text: v => String(v),
+  };
+  const fetchText = async name => { try { const r = await fetch(FIG + name, { cache: "no-cache" }); return r.ok ? r.text() : null; } catch (e) { return null; } };
+
+  // Numbers: every [__] is filled from headline.json when present.
+  let headline = null;
+  const raw = await fetchText("headline.json");
+  if (raw) { try { headline = JSON.parse(raw); } catch (e) { headline = null; } }
+  if (headline) {
+    document.querySelectorAll("[data-k]").forEach(el => {
+      const v = get(headline, el.dataset.k), fmt = FMT[el.dataset.fmt || "cost"];
+      if ((typeof v === "number" && isFinite(v)) || (typeof v === "string" && v)) { el.textContent = fmt(v); el.classList.add("filled"); }
+    });
+    const third = get(headline, "third_player.name");
+    if (third && third !== "OpenEvolve") {
+      document.getElementById("third-can").textContent = "See the project notes for this player";
+      document.getElementById("third-weak").textContent = "See the project notes for this player";
+    }
+  }
+
+  // Figures: each dashed box names the file it waits for, and is swapped for the image once it loads.
+  document.querySelectorAll("figure[data-fig]").forEach(fig => {
+    const img = new Image();
+    img.alt = fig.dataset.alt;
+    img.loading = "lazy";
+    img.onload = () => fig.querySelector(".slot").replaceWith(img);
+    img.src = FIG + fig.dataset.fig;
+  });
+
+  // Kept changes: a Markdown pipe table rendered as HTML.
+  const md = await fetchText("kept_changes.md");
+  if (md) {
+    const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const cells = l => l.trim().replace(/^\||\|$/g, "").split("|").map(c => esc(c.trim()));
+    const rows = md.split(/\r?\n/).filter(l => l.trim().startsWith("|") && !/^\|\s*-/.test(l.trim()));
+    if (rows.length) {
+      const [h, ...body] = rows.map(cells);
+      const isNum = s => /^-?[\d.,]+$/.test(s);
+      document.getElementById("kept").innerHTML = "<table><thead><tr>" + h.map(c => `<th scope="col">${c}</th>`).join("") +
+        "</tr></thead><tbody>" + body.map(r => "<tr>" + r.map(c => `<td${isNum(c) ? ' class="n"' : ""}>${c}</td>`).join("") + "</tr>").join("") + "</tbody></table>";
+    }
+  }
+
+  // Slides link only if deck.pdf exists.
+  try { const r = await fetch("deck.pdf", { method: "HEAD" }); if (r.ok) document.getElementById("deck-link").hidden = false; } catch (e) {}
+
+  // Replay console.
+  const [csvBase, csvBest] = await Promise.all([fetchText("preds_baseline.csv"), fetchText("preds_best.csv")]);
+  const data = { baseline: csvBase ? parseCSV(csvBase) : null, best: csvBest ? parseCSV(csvBest) : null };
+  if (!data.baseline && !data.best) return;
+  document.getElementById("replay-empty").hidden = true;
+  document.getElementById("replay-live").hidden = false;
+  const fleet = data.best || data.baseline;  // any CSV carries every engine's life for the fixed interval
+
+  const x = document.getElementById("x"), out = document.getElementById("x-out"), xLabel = document.getElementById("x-label");
+  const cfail = document.getElementById("cfail"), strip = document.getElementById("strip");
+  const radios = [...document.querySelectorAll('input[name="policy"]')];
+  for (const r of radios) if (r.value !== "fixed" && !data[r.value]) r.disabled = true;
+  if (!data.best) radios.find(r => r.value === "baseline").checked = true;
+  const startT = headline && Number.isFinite(get(headline, "best_T.500")) ? get(headline, "best_T.500") : 30;
+  const RANGE = { fixed: [50, 360], baseline: [0, 80], best: [0, 80] };
+  const value = { fixed: null, baseline: startT, best: startT };
+  const policy = () => radios.find(r => r.checked).value;
+  const engines = p => (p === "fixed" ? fleet : data[p]);
+
+  function cheapest(p) {
+    const [lo, hi] = RANGE[p], c = Number(cfail.value);
+    let best = lo, bestCost = Infinity;
+    for (let v = lo; v <= hi; v++) { const s = summarize(engines(p), p, v, c).cost; if (s < bestCost) { bestCost = s; best = v; } }
+    return best;
+  }
+  function setPolicy(p) {
+    const [lo, hi] = RANGE[p];
+    if (value[p] === null) value[p] = cheapest(p);
+    x.min = lo; x.max = hi; x.value = value[p];
+    xLabel.textContent = p === "fixed" ? "Pull every engine at cycle N" : "Pull when predicted life falls to T";
+    render();
+  }
+  const NS = "http://www.w3.org/2000/svg";
+  function render() {
+    const p = policy(), v = Number(x.value), c = Number(cfail.value);
+    value[p] = v;
+    out.textContent = p === "fixed" ? `N = ${v}` : `T = ${v} cycles`;
+    const s = summarize(engines(p), p, v, c);
+    document.getElementById("r-fail").textContent = s.failures;
+    document.getElementById("r-waste").textContent = s.wasted.toFixed(1);
+    document.getElementById("r-cost").textContent = s.cost.toFixed(2);
+    const pulled = s.per.filter(r => !r.failed).sort((a, b) => b.wasted - a.wasted);
+    const failed = s.per.filter(r => r.failed);
+    const bars = pulled.concat(failed), n = bars.length, W = 1000, axis = 160, top = 150, depth = 46;
+    const maxW = Math.max(10, ...pulled.map(r => r.wasted));
+    const bw = W / n, gap = Math.min(2, bw * 0.25);
+    strip.replaceChildren();
+    bars.forEach((r, i) => {
+      const rect = document.createElementNS(NS, "rect"), h = r.failed ? depth : Math.max(1, (r.wasted / maxW) * top);
+      rect.setAttribute("x", (i * bw + gap / 2).toFixed(2)); rect.setAttribute("width", Math.max(0.5, bw - gap).toFixed(2));
+      rect.setAttribute("y", r.failed ? axis + 1 : axis - h); rect.setAttribute("height", h.toFixed(2));
+      rect.setAttribute("fill", r.failed ? "var(--band-warning)" : "var(--band-caution)");
+      const t = document.createElementNS(NS, "title");
+      t.textContent = r.failed ? `Engine ${r.unit}: ran to failure` : `Engine ${r.unit}: pulled with ${r.wasted} cycles left`;
+      rect.appendChild(t); strip.appendChild(rect);
+    });
+    const line = document.createElementNS(NS, "line");
+    line.setAttribute("x1", 0); line.setAttribute("x2", W); line.setAttribute("y1", axis); line.setAttribute("y2", axis);
+    line.setAttribute("stroke", "var(--band-muted)"); line.setAttribute("stroke-width", 1); line.setAttribute("vector-effect", "non-scaling-stroke");
+    strip.appendChild(line);
+    strip.setAttribute("aria-label", `Bar strip of ${n} engines: ${pulled.length} pulled with a mean of ${s.wasted.toFixed(1)} cycles wasted per engine, ${failed.length} ran to failure. Mean cost ${s.cost.toFixed(2)} cycles per engine.`);
+    document.getElementById("strip-scale").textContent = `Tallest amber bar: ${maxW} cycles left`;
+  }
+  radios.forEach(r => r.addEventListener("change", () => setPolicy(policy())));
+  x.addEventListener("input", render);
+  cfail.addEventListener("change", render);
+  document.getElementById("cheapest").addEventListener("click", () => { x.value = cheapest(policy()); render(); });
+  setPolicy(policy());
+})();
+</script>
+</body>
+</html>

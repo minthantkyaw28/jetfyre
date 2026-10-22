@@ -5,3 +5,4 @@ data/*.txt
 best.json
 results.tsv
 optuna_results.tsv
+out/

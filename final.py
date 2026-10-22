@@ -3,6 +3,7 @@
 Usage: python final.py --baseline PATH --best PATH [--force]
 """
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -52,6 +53,9 @@ def main():
     print("|---" * (len(table.columns) + 1) + "|")
     for name, r in table.iterrows():
         print(f"| {name} | " + " | ".join(f"{v:.2f}" for v in r) + " |")
+    out = Path(__file__).parent / "out"
+    out.mkdir(exist_ok=True)
+    (out / "final.json").write_text(json.dumps(rows, indent=1))  # read by make_figures.py
     DONE.write_text("done\n")
 
 
