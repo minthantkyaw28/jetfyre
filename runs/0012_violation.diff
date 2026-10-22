@@ -1,0 +1,32 @@
+diff --git a/model.py b/model.py
+index 7bf4474..151985a 100644
+--- a/model.py
++++ b/model.py
+@@ -10,6 +10,9 @@ Columns: unit, cycle, os1, os2, os3, s1..s21.
+ import lightgbm as lgb
+ import numpy as np
+ import pandas as pd
++from sklearn.linear_model import Ridge
++from sklearn.pipeline import make_pipeline
++from sklearn.preprocessing import StandardScaler
+ 
+ T = 12.0  # pull threshold, in cycles of predicted remaining life
+ 
+@@ -31,10 +34,16 @@ class Model:
+     def fit(self, tracks):
+         X = pd.concat([features(t) for t in tracks], ignore_index=True)
+         y = np.concatenate([target(t) for t in tracks])
++        # linear health index: one low-noise axis combining all 14 smoothed sensors
++        R = [c + "_r10" for c in INFORMATIVE]
++        self.hi = make_pipeline(StandardScaler(), Ridge(alpha=1.0)).fit(X[R], np.minimum(y, 125))
++        X["hi"] = self.hi.predict(X[R])
+         self.m = lgb.LGBMRegressor(n_estimators=200, learning_rate=0.05, num_leaves=31,
+                                    random_state=0, n_jobs=4, verbose=-1)
+         self.m.fit(X, y)
+         return self
+ 
+     def predict(self, track):
+-        return self.m.predict(features(track))
++        X = features(track)
++        X["hi"] = self.hi.predict(X[[c + "_r10" for c in INFORMATIVE]])
++        return self.m.predict(X)
