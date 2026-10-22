@@ -14,3 +14,5 @@ autoresearch: 45 min, max 45 turns, cap 240s/turn
 === turn 7 (results rows: 10) 18:14:10 → runs/agent_turn_0010.log
   last: 9	drop the raw per-cycle sensor columns and feed only settings + causal 10-cycle rolling means of the 14 informative sensors: raw sensors inject per-cycle noise into late-life predictions that triggers early dips below T=12; with inputs smoothed and the model trained on the same lagged features, predictions stay calibrated (unlike post-hoc EWMA in T0007) so the first crossing lands closer to T and waste drops on every fold without new fails	keep	10.85
 === turn 8 (results rows: 11) 18:16:18 → runs/agent_turn_0011.log
+  last: 10	drop the os1/os2/os3 settings columns and feed only the causal r10 means of the 14 informative sensors: FD001 runs at a single operating condition, so the settings are pure per-cycle noise; like the raw sensors removed in T0009 they let trees split on noise and add jitter to late-life predictions, so without them the first crossing below T=12 lands closer to T and waste drops on >=4/5 folds without new fails	violation	
+=== turn 9 (results rows: 12) 18:18:10 → runs/agent_turn_0012.log
