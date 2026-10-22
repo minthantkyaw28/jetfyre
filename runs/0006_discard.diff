@@ -1,0 +1,13 @@
+diff --git a/model.py b/model.py
+index a60e109..66fcbcc 100644
+--- a/model.py
++++ b/model.py
+@@ -24,7 +24,7 @@ def features(track: pd.DataFrame) -> pd.DataFrame:
+ 
+ 
+ def target(track: pd.DataFrame) -> np.ndarray:
+-    return len(track) - np.arange(1, len(track) + 1)  # true cycles left
++    return np.minimum(len(track) - np.arange(1, len(track) + 1), 125)  # cycles left, capped at 125
+ 
+ 
+ class Model:

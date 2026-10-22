@@ -4,3 +4,5 @@ autoresearch: 45 min, max 45 turns, cap 240s/turn
 === turn 2 (results rows: 5) 18:08:25 → runs/agent_turn_0005.log
   last: 4	causal 10-cycle rolling means of the 14 informative sensors as extra features: with 0 fails, waste ~T+3 comes from noisy per-cycle predictions dipping below T early; smoothed sensor inputs should steady late-life predictions and cut the overshoot	keep	11.08
 === turn 3 (results rows: 6) 18:09:17 → runs/agent_turn_0006.log
+  last: 5	add causal 30-cycle rolling means of the 14 informative sensors alongside the 10-cycle ones: w=10 smoothing cut the overshoot, a longer window should further damp per-cycle noise in late-life predictions so the first crossing below T lands closer to failure and waste drops	discard	11.0
+=== turn 4 (results rows: 7) 18:10:42 → runs/agent_turn_0007.log
