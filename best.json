@@ -1,14 +1,14 @@
 {
- "turn": 9,
- "hypothesis": "drop the raw per-cycle sensor columns and feed only settings + causal 10-cycle rolling means of the 14 informative sensors: raw sensors inject per-cycle noise into late-life predictions that triggers early dips below T=12; with inputs smoothed and the model trained on the same lagged features, predictions stay calibrated (unlike post-hoc EWMA in T0007) so the first crossing lands closer to T and waste drops on every fold without new fails",
+ "turn": 18,
+ "hypothesis": "lower pull threshold T 12->11 on the T0009 model (settings + causal r10 means, unchanged): T0017 showed that model variance does not limit the RUL~T crossing and five feature changes only moved crossings between folds, so T is the lever left that should help every fold; with 0 fails and waste ~T-1 (f5 8.5 = least margin), one cycle lower should cut waste by about 1 on every fold, provided no engine runs to failure",
  "status": "ok",
- "T": 12.0,
+ "T": 11.0,
  "fold_costs": [
-  12.7,
-  10.55,
-  13.0,
-  9.5,
-  8.5
+  11.2,
+  10.05,
+  11.5,
+  8.4,
+  7.8
  ],
  "fold_fails": [
   0,
@@ -18,40 +18,40 @@
   0
  ],
  "fold_waste": [
-  12.7,
-  10.55,
-  13.0,
-  9.5,
-  8.5
+  11.2,
+  10.05,
+  11.5,
+  8.4,
+  7.8
  ],
  "cost_by_cfail": {
   "250": [
-   12.7,
-   10.55,
-   13.0,
-   9.5,
-   8.5
+   11.2,
+   10.05,
+   11.5,
+   8.4,
+   7.8
   ],
   "500": [
-   12.7,
-   10.55,
-   13.0,
-   9.5,
-   8.5
+   11.2,
+   10.05,
+   11.5,
+   8.4,
+   7.8
   ],
   "1000": [
-   12.7,
-   10.55,
-   13.0,
-   9.5,
-   8.5
+   11.2,
+   10.05,
+   11.5,
+   8.4,
+   7.8
   ]
  },
- "mean_cost": 10.85,
+ "mean_cost": 9.79,
  "fails": 0,
- "waste": 10.85,
+ "waste": 9.79,
  "rmse125": 33.456,
  "nasa100": 47733.3,
  "leak_ok": true,
- "secs": 4.34
+ "secs": 3.64
 }
