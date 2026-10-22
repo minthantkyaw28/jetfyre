@@ -40,7 +40,8 @@ _model = HistGradientBoostingRegressor(random_state=0)
 def fit(tracks):
     X = np.vstack([features(t) for t in tracks])
     y = np.concatenate([target(t) for t in tracks])
-    _model.fit(X, y)
+    # Pull decisions happen near end of life, so weight those rows more.
+    _model.fit(X, y, sample_weight=np.where(y < 30, 5.0, 1.0))
 
 
 def predict(track):
