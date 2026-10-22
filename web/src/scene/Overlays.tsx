@@ -133,6 +133,20 @@ export default function Overlays() {
       </div>
 
       <FocusCaption />
+
+      {/* bottom-left: QR to open the live dashboard on a phone */}
+      <a
+        href="https://jetfyre.vercel.app/"
+        target="_blank"
+        rel="noreferrer"
+        className="absolute bottom-5 left-5 z-30 hidden items-center gap-3 rounded-2xl border border-line bg-panel/85 p-2.5 pr-4 shadow-[0_10px_28px_#02061766] backdrop-blur transition hover:border-fyre md:flex"
+      >
+        <img src="/qr-jetfyre.svg" alt="QR code for jetfyre.vercel.app" className="h-[84px] w-[84px] rounded-lg bg-white p-1" />
+        <div className="max-w-[150px] leading-snug">
+          <div className="text-[13.5px] font-semibold text-ink">Scan to see the project on your phone</div>
+          <div className="mt-1 font-mono text-[11.5px] text-muted">jetfyre.vercel.app</div>
+        </div>
+      </a>
     </>
   );
 }
