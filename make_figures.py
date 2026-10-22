@@ -346,9 +346,13 @@ def model_story():
     }
     final = OUT / "final.json"
     if final.exists():
-        rep = json.loads(final.read_text()).get("best", {}).get("fd003_replay", {}).get("500")
+        final_rows = json.loads(final.read_text())
+        rep = final_rows.get("best", {}).get("fd003_replay", {}).get("500")
+        base = final_rows.get("baseline", {}).get("fd003_replay", {}).get("500")
         if rep:
             story["fd003_failures"], story["fd003_engines"] = rep["failures"], rep["engines"]
+        if base:
+            story["fd003_failures_baseline"] = base["failures"]
     (OUT / "model_story.json").write_text(json.dumps(story))
 
 
