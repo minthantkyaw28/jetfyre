@@ -42,7 +42,7 @@ sup { line-height: 0; font-size: 0.7em; }
 sup a { text-decoration: none; padding: 0 1px; }
 code, pre { font-family: var(--mono); font-size: 15px; }
 p code, li code, td code { font-size: 0.85em; background: var(--paper-2); padding: 1px 5px; border-radius: 3px; }
-.wrap { width: min(1040px, 100% - 32px); margin-left: clamp(16px, 7vw, 112px); }
+.wrap { width: min(1040px, 100% - 32px); margin-inline: auto; }
 section { border-top: 1px solid var(--rule); padding: 56px 0 48px; }
 .num { font-weight: 600; font-variant-numeric: tabular-nums; }
 .num:not(.filled) { color: var(--muted); }
@@ -496,7 +496,6 @@ if (typeof document !== "undefined") (async function () {
   document.querySelectorAll("figure[data-fig]").forEach(fig => {
     const img = new Image();
     img.alt = fig.dataset.alt;
-    img.loading = "lazy";
     img.onload = () => fig.querySelector(".slot").replaceWith(img);
     img.src = FIG + fig.dataset.fig;
   });
