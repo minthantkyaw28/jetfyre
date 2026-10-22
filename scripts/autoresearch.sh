@@ -55,7 +55,7 @@ for (( i = 1; i <= MAX_TURNS; i++ )); do
     git checkout -- model.py
   fi
 
-  tail -n 1 results.tsv 2>/dev/null | cut -f1,3,4,15 | sed 's/^/  last: /'
+  tail -n 1 results.tsv 2>/dev/null | cut -f1,3,5,6 | sed 's/^/  last: /'
 done
 
 end_rows=$( [[ -f results.tsv ]] && wc -l < results.tsv | tr -d ' ' || echo 0 )
