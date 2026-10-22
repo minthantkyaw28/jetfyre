@@ -1,0 +1,16 @@
+diff --git a/model.py b/model.py
+index a60e109..52c3583 100644
+--- a/model.py
++++ b/model.py
+@@ -19,8 +19,9 @@ INFORMATIVE = ["s2", "s3", "s4", "s7", "s8", "s9", "s11", "s12", "s13", "s14", "
+ 
+ 
+ def features(track: pd.DataFrame) -> pd.DataFrame:
+-    roll = track[INFORMATIVE].rolling(10, min_periods=1).mean().add_suffix("_r10")  # causal
+-    return pd.concat([track[SETTINGS + SENSORS], roll], axis=1)
++    roll = track[INFORMATIVE].rolling(10, min_periods=1).mean()  # causal
++    base = track[INFORMATIVE].head(20).expanding().mean().reindex(track.index).ffill()  # causal: own first <=20 cycles
++    return pd.concat([track[SETTINGS + SENSORS], roll.add_suffix("_r10"), (roll - base).add_suffix("_d")], axis=1)
+ 
+ 
+ def target(track: pd.DataFrame) -> np.ndarray:
