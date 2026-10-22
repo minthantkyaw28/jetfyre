@@ -92,7 +92,7 @@ export default function App() {
         <section className="relative h-[62vh] min-h-0 border-b border-line lg:h-auto lg:border-r lg:border-b-0">
           <FleetScene />
         </section>
-        <section className="theme-navy grid min-h-0 grid-rows-[minmax(0,1.08fr)_minmax(0,1fr)]">
+        <section className="theme-navy grid min-h-0 grid-rows-[minmax(0,1.55fr)_minmax(0,1fr)]">
           <div className="min-h-[420px] border-b border-line lg:min-h-0">
             <AgentCluster />
           </div>
