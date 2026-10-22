@@ -20,7 +20,7 @@ INFORMATIVE = ["s2", "s3", "s4", "s7", "s8", "s9", "s11", "s12", "s13", "s14", "
 
 def features(track: pd.DataFrame) -> pd.DataFrame:
     roll = track[INFORMATIVE].rolling(10, min_periods=1).mean().add_suffix("_r10")  # causal
-    return pd.concat([track[SETTINGS + SENSORS], roll], axis=1)
+    return pd.concat([track[SETTINGS], roll], axis=1)  # raw per-cycle sensors dropped
 
 
 def target(track: pd.DataFrame) -> np.ndarray:

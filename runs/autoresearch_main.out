@@ -10,3 +10,5 @@ autoresearch: 45 min, max 45 turns, cap 240s/turn
 === turn 5 (results rows: 8) 18:11:30 → runs/agent_turn_0008.log
   last: 7	causal EWMA (span 5, adjust=False) over each track's predicted-RUL series: damps single-cycle noisy dips below T that trigger early pulls and adds ~2 cycles of lag on the descending late-life trajectory, so first crossings land ~2 cycles closer to failure and waste drops; per-fold waste 8.75-13.25 at T=12 leaves margin for no new fails	discard	13.76
 === turn 6 (results rows: 9) 18:12:34 → runs/agent_turn_0009.log
+  last: 8	per-engine causal baseline: add (10-cycle rolling mean minus this engine's own mean over its first <=20 cycles) for the 14 informative sensors: removes engine-to-engine initial-wear offsets that make some engines' late-life preds run high (thin f4/f5 margin, waste ~9) and others dip early (f1/f3 waste ~13), so first crossings below T=12 cluster closer to true RUL and waste drops without new fails	discard	11.54
+=== turn 7 (results rows: 10) 18:14:10 → runs/agent_turn_0010.log

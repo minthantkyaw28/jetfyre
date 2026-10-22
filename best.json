@@ -1,14 +1,14 @@
 {
- "turn": 4,
- "hypothesis": "causal 10-cycle rolling means of the 14 informative sensors as extra features: with 0 fails, waste ~T+3 comes from noisy per-cycle predictions dipping below T early; smoothed sensor inputs should steady late-life predictions and cut the overshoot",
+ "turn": 9,
+ "hypothesis": "drop the raw per-cycle sensor columns and feed only settings + causal 10-cycle rolling means of the 14 informative sensors: raw sensors inject per-cycle noise into late-life predictions that triggers early dips below T=12; with inputs smoothed and the model trained on the same lagged features, predictions stay calibrated (unlike post-hoc EWMA in T0007) so the first crossing lands closer to T and waste drops on every fold without new fails",
  "status": "ok",
  "T": 12.0,
  "fold_costs": [
+  12.7,
+  10.55,
   13.0,
-  11.05,
-  13.25,
-  9.35,
-  8.75
+  9.5,
+  8.5
  ],
  "fold_fails": [
   0,
@@ -18,40 +18,40 @@
   0
  ],
  "fold_waste": [
+  12.7,
+  10.55,
   13.0,
-  11.05,
-  13.25,
-  9.35,
-  8.75
+  9.5,
+  8.5
  ],
  "cost_by_cfail": {
   "250": [
+   12.7,
+   10.55,
    13.0,
-   11.05,
-   13.25,
-   9.35,
-   8.75
+   9.5,
+   8.5
   ],
   "500": [
+   12.7,
+   10.55,
    13.0,
-   11.05,
-   13.25,
-   9.35,
-   8.75
+   9.5,
+   8.5
   ],
   "1000": [
+   12.7,
+   10.55,
    13.0,
-   11.05,
-   13.25,
-   9.35,
-   8.75
+   9.5,
+   8.5
   ]
  },
- "mean_cost": 11.08,
+ "mean_cost": 10.85,
  "fails": 0,
- "waste": 11.08,
- "rmse125": 32.932,
- "nasa100": 27145.9,
+ "waste": 10.85,
+ "rmse125": 33.456,
+ "nasa100": 47733.3,
  "leak_ok": true,
- "secs": 3.96
+ "secs": 4.34
 }
