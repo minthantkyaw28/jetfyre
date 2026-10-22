@@ -6,3 +6,5 @@ autoresearch: 45 min, max 45 turns, cap 240s/turn
 === turn 3 (results rows: 6) 18:09:17 → runs/agent_turn_0006.log
   last: 5	add causal 30-cycle rolling means of the 14 informative sensors alongside the 10-cycle ones: w=10 smoothing cut the overshoot, a longer window should further damp per-cycle noise in late-life predictions so the first crossing below T lands closer to failure and waste drops	discard	11.0
 === turn 4 (results rows: 7) 18:10:42 → runs/agent_turn_0007.log
+  last: 6	cap the training RUL target at 125: with uncapped L2 the boosting spends most gradient on unpredictable early-life RUL (150-360 for healthy engines), capping frees trees to refine the low-RUL region so late-life predictions near RUL~T are tighter and the first crossing below T lands closer to T, cutting waste on folds 1-3 (~T+1) without new fails	discard	11.2
+=== turn 5 (results rows: 8) 18:11:30 → runs/agent_turn_0008.log

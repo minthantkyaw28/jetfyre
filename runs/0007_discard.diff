@@ -1,0 +1,11 @@
+diff --git a/model.py b/model.py
+index a60e109..1abdd73 100644
+--- a/model.py
++++ b/model.py
+@@ -37,4 +37,5 @@ class Model:
+         return self
+ 
+     def predict(self, track):
+-        return self.m.predict(features(track))
++        p = self.m.predict(features(track))
++        return pd.Series(p).ewm(span=5, adjust=False).mean().to_numpy()  # causal smoothing
